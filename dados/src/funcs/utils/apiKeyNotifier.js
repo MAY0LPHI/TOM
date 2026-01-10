@@ -77,8 +77,18 @@ function isApiKeyError(error) {
  * @param {string} ownerLid - ID do dono no formato WhatsApp
  * @param {string} error - Mensagem de erro
  * @param {string} serviceName - Nome do serviço afetado (YouTube, TikTok, Instagram, IA)
+ * @param {string} prefix - Prefixo do bot (opcional, padrão: '!')
  */
-async function notifyOwnerAboutApiKey(nazu, ownerLid, error, serviceName = 'Sistema') {
+async function notifyOwnerAboutApiKey(nazu, ownerLid, error, serviceName = 'Sistema', prefix = '!') {
+  // Validar parâmetros obrigatórios
+  if (!nazu || !ownerLid) {
+    console.error('❌ notifyOwnerAboutApiKey: Parâmetros inválidos', { 
+      hasNazu: !!nazu, 
+      ownerLid: ownerLid || 'undefined' 
+    });
+    return;
+  }
+  
   // Verificar se pode enviar notificação
   if (!canSendNotification()) {
     // Se já atingiu o limite, enviar mensagem de limite apenas uma vez
@@ -114,19 +124,19 @@ Uma API Key é como uma "senha especial" que permite ao bot acessar os serviços
 • *Aviso:* ${dailyNotifications.count + 1}/${dailyNotifications.maxNotifications} de hoje
 
 💳 *Como adquirir API Key:*
-• Acesse: https://cog2.cognima.com.br/plans
+• Acesse: https://cog.api.br/plans
 • Escolha o plano que melhor se adequa às suas necessidades
 • Configure a key no bot após a compra
 
 🔧 *Possíveis causas e soluções:*
 1️⃣ *API Key expirada* → Renovar no painel Cognima
-2️⃣ *Limite de requisições esgotado* → Adquirir plano em cog2.cognima.com.br/plans
+2️⃣ *Limite de requisições esgotado* → Adquirir plano em cog.api.br/plans
 3️⃣ *Chave incorreta* → Verificar se está correta no config.json
 4️⃣ *Problema temporário do servidor* → Aguardar alguns minutos
 
 ⚙️ *Como ativar key:*
-• Use o comando: !apikey suachave
-• Exemplo: !apikey ABC123XYZ789
+• Use o comando: ${prefix}apikey suachave
+• Exemplo: ${prefix}apikey ABC123XYZ789
 • Reinicie o bot após configurar
 
 💬 Você receberá no máximo 3 avisos por dia para evitar spam.`;

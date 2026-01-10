@@ -1,9 +1,10 @@
 /**
  * Download e Pesquisa TikTok usando API Cognima
- * Updated to use cog2.cognima.com.br API
+ * Updated to use cog.api.br API
+ * Otimizado com HTTP connection pooling
  */
 
-import axios from 'axios';
+import { apiClient } from '../../utils/httpClient.js';
 import { notifyOwnerAboutApiKey, isApiKeyError } from '../utils/apiKeyNotifier.js';
 
 // Função para pesquisar vídeos no TikTok
@@ -13,14 +14,11 @@ async function tiktokSearch(query, apiKey) {
       throw new Error('API key não fornecida');
     }
 
-    const response = await axios.post('https://cog2.cognima.com.br/api/v1/tiktok/search', {
+    const response = await apiClient.post('https://cog.api.br/api/v1/tiktok/search', {
       query: query
     }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey
-      },
-      timeout: 30000
+      headers: { 'X-API-Key': apiKey },
+      timeout: 120000
     });
 
     if (!response.data.success || !response.data.data) {
@@ -58,14 +56,11 @@ async function tiktokDownload(url, apiKey) {
       throw new Error('API key não fornecida');
     }
 
-    const response = await axios.post('https://cog2.cognima.com.br/api/v1/tiktok/download', {
+    const response = await apiClient.post('https://cog.api.br/api/v1/tiktok/download', {
       url: url
     }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey
-      },
-      timeout: 30000
+      headers: { 'X-API-Key': apiKey },
+      timeout: 120000
     });
 
     if (!response.data.success || !response.data.data) {

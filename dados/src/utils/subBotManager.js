@@ -23,7 +23,7 @@ const BASE_DATABASE_DIR = path.join(__dirname, '../../database');
 async function fetchBaileysVersionFromGitHub() {
     try {
         const response = await axios.get('https://raw.githubusercontent.com/WhiskeySockets/Baileys/refs/heads/master/src/Defaults/baileys-version.json', {
-            timeout: 10000
+            timeout: 120000
         });
         return {
             version: response.data.version
@@ -150,14 +150,14 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
         const { config, dirs } = createSubBotConfig(botId, phoneNumber, ownerNumber);
         
         const { state, saveCreds } = await useMultiFileAuthState(dirs.authDir, makeCacheableSignalKeyStore);
-        const { version } = await fetchBaileysVersionFromGitHub();
+        const version = [2, 3000, 1030831524];
 
         const msgRetryCounterCache = new NodeCache();
 
         const sock = makeWASocket({
             version,
             logger,
-            browser: ['Mac OS', 'Safari', '18.6'],
+            browser: ['Windows', 'Edge', '143.0.3650.66'],
             emitOwnEvents: true,
             fireInitQueries: true,
             generateHighQualityLinkPreview: true,
@@ -274,21 +274,38 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
                 for (const info of m.messages) {
                     if (!info || !info.message || !info.key?.remoteJid) continue;
                     
+                    // Ignora mensagens próprias do bot
+                    if (info.key.fromMe) continue;
+                    
                     console.log(`📨 Sub-bot ${botId} processando mensagem de ${info.key.remoteJid}`);
                     
                     // Define o caminho do config do sub-bot temporariamente
                     const originalConfigPath = process.env.CONFIG_PATH;
+                    const originalDatabasePath = process.env.DATABASE_PATH;
+                    const originalIsSubbot = process.env.IS_SUBBOT;
+                    const originalSubbotId = process.env.SUBBOT_ID;
+                    
                     const subBotConfigPath = path.join(dirs.databaseDir, 'config.json');
                     
-                    // Temporariamente define o config do sub-bot
+                    // IMPORTANTE: Define as variáveis ANTES de importar qualquer módulo
                     process.env.CONFIG_PATH = subBotConfigPath;
                     process.env.DATABASE_PATH = dirs.databaseDir;
                     process.env.IS_SUBBOT = 'true';
                     process.env.SUBBOT_ID = botId;
                     
                     try {
-                        // Carrega o módulo de processamento
+                        // Carrega o módulo de processamento (import dinâmico)
+                        // As variáveis de ambiente devem estar definidas antes deste import
                         const indexModule = await import('../index.js');
+                        
+                        // Obtém a função default exportada
+                        const NazuninhaBotExec = indexModule.default || indexModule;
+                        
+                        if (typeof NazuninhaBotExec !== 'function') {
+                            console.error(`❌ Erro: NazuninhaBotExec não é uma função. Tipo: ${typeof NazuninhaBotExec}`);
+                            console.error(`Módulo importado:`, Object.keys(indexModule));
+                            continue;
+                        }
                         
                         // Cria um cache simples para este sub-bot usando Map (compatível com bot principal)
                         const messagesCache = new Map();
@@ -300,23 +317,37 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
                         }
                         
                         // Processa a mensagem usando a mesma lógica do bot principal
-                        if (typeof indexModule === 'function') {
-                            await indexModule(sock, info, null, messagesCache, null);
-                        }
+                        await NazuninhaBotExec(sock, info, null, messagesCache, null);
+                    } catch (importError) {
+                        console.error(`❌ Erro ao importar/executar processamento no sub-bot ${botId}:`, importError.message);
+                        console.error(`Stack trace:`, importError.stack);
                     } finally {
                         // Restaura o config original
-                        if (originalConfigPath) {
+                        if (originalConfigPath !== undefined) {
                             process.env.CONFIG_PATH = originalConfigPath;
                         } else {
                             delete process.env.CONFIG_PATH;
                         }
-                        delete process.env.DATABASE_PATH;
-                        delete process.env.IS_SUBBOT;
-                        delete process.env.SUBBOT_ID;
+                        if (originalDatabasePath !== undefined) {
+                            process.env.DATABASE_PATH = originalDatabasePath;
+                        } else {
+                            delete process.env.DATABASE_PATH;
+                        }
+                        if (originalIsSubbot !== undefined) {
+                            process.env.IS_SUBBOT = originalIsSubbot;
+                        } else {
+                            delete process.env.IS_SUBBOT;
+                        }
+                        if (originalSubbotId !== undefined) {
+                            process.env.SUBBOT_ID = originalSubbotId;
+                        } else {
+                            delete process.env.SUBBOT_ID;
+                        }
                     }
                 }
             } catch (error) {
-                console.error(`❌ Erro ao processar mensagem no sub-bot ${botId}:`, error.message);
+                console.error(`❌ Erro geral ao processar mensagem no sub-bot ${botId}:`, error.message);
+                console.error(`Stack trace:`, error.stack);
             }
         });
 

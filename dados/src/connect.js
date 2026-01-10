@@ -17,72 +17,17 @@ import PerformanceOptimizer from './utils/performanceOptimizer.js';
 import RentalExpirationManager from './utils/rentalExpirationManager.js';
 import { loadMsgBotOn } from './utils/database.js';
 import { buildUserId } from './utils/helpers.js';
+import { initCaptchaIndex } from './utils/captchaIndex.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Cache para versão do Baileys
-let baileysVersionCache = null;
-let baileysVersionCacheTime = 0;
-const BAILEYS_VERSION_CACHE_TTL = 60 * 60 * 1000; // 1 hora
-
-/**
- * Busca a versão do Baileys diretamente do JSON do GitHub
- * Com cache para evitar requisições excessivas
- * @returns {Promise<{version: number[]}>}
- */
-async function fetchBaileysVersionFromGitHub() {
-    const now = Date.now();
-    
-    // Retorna cache se ainda válido
-    if (baileysVersionCache && (now - baileysVersionCacheTime) < BAILEYS_VERSION_CACHE_TTL) {
-        return baileysVersionCache;
-    }
-    
-    try {
-        const response = await axios.get('https://raw.githubusercontent.com/WhiskeySockets/Baileys/refs/heads/master/src/Defaults/baileys-version.json', {
-            timeout: 10000,
-            validateStatus: (status) => status === 200
-        });
-        
-        if (!response.data || !Array.isArray(response.data.version)) {
-            throw new Error('Resposta inválida do GitHub');
-        }
-        
-        baileysVersionCache = {
-            version: response.data.version
-        };
-        baileysVersionCacheTime = now;
-        
-        return baileysVersionCache;
-    } catch (error) {
-        console.error('❌ Erro ao buscar versão do Baileys do GitHub, usando função fetchLatestBaileysVersion como fallback:', error.message);
-        
-        // Se tem cache, usa ele mesmo expirado
-        if (baileysVersionCache) {
-            console.warn('⚠️ Usando versão em cache (pode estar desatualizada)');
-            return baileysVersionCache;
-        }
-        
-        // Fallback para função original caso falhe
-        try {
-            const fallbackVersion = await fetchLatestBaileysVersion();
-            baileysVersionCache = fallbackVersion;
-            baileysVersionCacheTime = now;
-            return fallbackVersion;
-        } catch (fallbackError) {
-            console.error('❌ Erro no fallback também:', fallbackError.message);
-            throw new Error('Não foi possível obter a versão do Baileys');
-        }
-    }
-}
 
 class MessageQueue {
     constructor(maxWorkers = 4, batchSize = 10, messagesPerBatch = 2) {
         this.queue = [];
         this.maxWorkers = maxWorkers;
-        this.batchSize = batchSize; // Número de lotes
-        this.messagesPerBatch = messagesPerBatch; // Mensagens por lote
+        this.batchSize = batchSize;
+        this.messagesPerBatch = messagesPerBatch;
         this.activeWorkers = 0;
         this.isProcessing = false;
         this.processingInterval = null;
@@ -95,6 +40,7 @@ class MessageQueue {
             batchesProcessed: 0,
             avgBatchTime: 0
         };
+        this.idCounter = 0; // Contador simples ao invés de crypto.randomUUID()
     }
 
     setErrorHandler(handler) {
@@ -109,13 +55,7 @@ class MessageQueue {
                 resolve,
                 reject,
                 timestamp: Date.now(),
-                id: (() => {
-                  try {
-                    return crypto.randomUUID();
-                  } catch (error) {
-                    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                  }
-                })()
+                id: `msg_${++this.idCounter}_${Date.now()}`
             });
             
             this.stats.currentQueueLength = this.queue.length;
@@ -309,6 +249,7 @@ const messageQueue = new MessageQueue(8, 10, 2); // 8 workers, 10 lotes, 2 mensa
 
 const configPath = path.join(__dirname, "config.json");
 let config;
+let DEBUG_MODE = false; // Modo debug para logs detalhados
 
 // Validação de configuração
 try {
@@ -319,6 +260,12 @@ try {
     if (!config.prefixo || !config.nomebot || !config.numerodono) {
         throw new Error('Configuração inválida: campos obrigatórios ausentes (prefixo, nomebot, numerodono)');
     }
+    
+    // Ativa modo debug se configurado
+    DEBUG_MODE = config.debug === true || process.env.NAZUNA_DEBUG === '1';
+    if (DEBUG_MODE) {
+        console.log('🐛 Modo DEBUG ativado - Logs detalhados habilitados');
+    }
 } catch (err) {
     console.error(`❌ Erro ao carregar configuração: ${err.message}`);
     process.exit(1);
@@ -328,7 +275,16 @@ const indexModule = (await import('./index.js')).default ?? (await import('./ind
 
 const performanceOptimizer = new PerformanceOptimizer();
 
+const {
+    prefixo,
+    nomebot,
+    nomedono,
+    numerodono
+} = config;
+
 const rentalExpirationManager = new RentalExpirationManager(null, {
+    ownerNumber: numerodono,
+    ownerName: nomedono,
     checkInterval: '0 */6 * * *',
     warningDays: 3,
     finalWarningDays: 1,
@@ -353,6 +309,9 @@ async function initializeOptimizedCaches() {
     try {
         await performanceOptimizer.initialize();
         
+        // Inicializa índice de captcha para busca rápida
+        await initCaptchaIndex();
+        
         msgRetryCounterCache = {
             get: (key) => performanceOptimizer.cacheGet('msgRetry', key),
             set: (key, value, ttl) => performanceOptimizer.cacheSet('msgRetry', key, value, ttl),
@@ -372,13 +331,6 @@ async function initializeOptimizedCaches() {
         
     }
 }
-
-const {
-    prefixo,
-    nomebot,
-    nomedono,
-    numerodono
-} = config;
 const codeMode = process.argv.includes('--code') || process.env.NAZUNA_CODE_MODE === '1';
 
 // Cleanup otimizado do cache de mensagens
@@ -495,8 +447,16 @@ async function handleGroupParticipantsUpdate(NazunaSock, inf) {
     try {
         const from = inf.id || inf.jid || (inf.participants && inf.participants.length > 0 ? inf.participants[0].split('@')[0] + '@s.whatsapp.net' : null);
         
+        if (DEBUG_MODE) {
+            console.log('🐛 [handleGroupParticipantsUpdate] Processando evento...');
+            console.log('🐛 Group ID extraído:', from);
+        }
+        
         if (!from) {
             console.error('❌ Erro: ID do grupo não encontrado nos dados do evento.');
+            if (DEBUG_MODE) {
+                console.log('🐛 Dados do evento:', JSON.stringify(inf, null, 2));
+            }
             return;
         }
 
@@ -582,23 +542,91 @@ async function handleGroupParticipantsUpdate(NazunaSock, inf) {
             }
             case 'promote':
             case 'demote': {
-                // Notificação X9 (sem bloqueio de ação)
-                if (groupSettings.x9 && inf.author) {
-                    for (const participant of inf.participants) {
-                        const action = inf.action === 'promote' ? 'promovido a ADM' : 'rebaixado de ADM';
-                        await NazunaSock.sendMessage(from, {
-                            text: `🚨 @${participant.split('@')[0]} foi ${action} por @${inf.author.split('@')[0]}.`,
-                            mentions: [participant, inf.author],
-                        }).catch(err => {
-                            console.error(`❌ Erro ao enviar notificação X9: ${err.message}`);
-                        });
-                    }
-                }
+                // Ação sem notificação
                 break;
             }
         }
     } catch (error) {
         console.error(`❌ Erro em handleGroupParticipantsUpdate: ${error.message}\n${error.stack}`);
+    }
+}
+
+// Handler para solicitações de entrada em grupos
+// Evento 'group.join-request' emitido pelo Baileys
+async function handleGroupJoinRequest(NazunaSock, inf) {
+    try {
+        const from = inf.id;
+        
+        if (DEBUG_MODE) {
+            console.log('🐛 [handleGroupJoinRequest] Processando solicitação...');
+            console.log('🐛 Group ID:', from);
+            console.log('🐛 Action:', inf.action);
+            console.log('🐛 Participant (LID):', inf.participant);
+            console.log('🐛 Participant Phone:', inf.participantPn);
+            console.log('🐛 Author:', inf.author);
+            console.log('🐛 Method:', inf.method);
+        }
+        
+        if (!from) {
+            if (DEBUG_MODE) console.log('🐛 Group ID não encontrado, abortando');
+            return;
+        }
+        
+        const groupSettings = await loadGroupSettings(from);
+        
+        if (DEBUG_MODE) {
+            console.log('🐛 Group settings:');
+            console.log('  - autoAcceptRequests:', groupSettings.autoAcceptRequests);
+            console.log('  - captchaEnabled:', groupSettings.captchaEnabled);
+            console.log('  - x9:', groupSettings.x9);
+        }
+        
+        // O participante pode vir como LID ou phone number
+        const participantJid = inf.participantPn || inf.participant;
+        const participantDisplay = participantJid ? participantJid.split('@')[0] : 'Desconhecido';
+        
+        // Auto-aceitar se configurado e for uma nova solicitação
+        if (groupSettings.autoAcceptRequests && inf.action === 'created' && participantJid) {
+            try {
+                // Se captcha estiver ativado
+                if (groupSettings.captchaEnabled) {
+                    const num1 = Math.floor(Math.random() * 10) + 1;
+                    const num2 = Math.floor(Math.random() * 10) + 1;
+                    const answer = num1 + num2;
+                    
+                    // Salvar captcha pendente
+                    if (!groupSettings.pendingCaptchas) groupSettings.pendingCaptchas = {};
+                    groupSettings.pendingCaptchas[participantJid] = {
+                        answer,
+                        groupId: from,
+                        timestamp: Date.now()
+                    };
+                    await saveGroupSettings(from, groupSettings);
+                    
+                    // Enviar captcha no PV
+                    await NazunaSock.sendMessage(participantJid, {
+                        text: `🔐 *Verificação de Segurança*\n\nVocê solicitou entrar no grupo. Para ser aprovado, resolva esta conta:\n\n❓ Quanto é *${num1} + ${num2}*?\n\n⏱️ Você tem 5 minutos para responder.\n\n💡 Responda apenas com o número.`
+                    }).catch(err => console.error(`❌ Erro ao enviar captcha: ${err.message}`));
+                    
+                    // Auto-rejeitar após 5 minutos se não responder
+                    setTimeout(async () => {
+                        const currentSettings = await loadGroupSettings(from);
+                        if (currentSettings.pendingCaptchas?.[participantJid]) {
+                            delete currentSettings.pendingCaptchas[participantJid];
+                            await saveGroupSettings(from, currentSettings);
+                            await NazunaSock.groupRequestParticipantsUpdate(from, [participantJid], 'reject').catch(() => {});
+                        }
+                    }, 5 * 60 * 1000);
+                } else {
+                    // Auto-aceitar direto sem captcha
+                    await NazunaSock.groupRequestParticipantsUpdate(from, [participantJid], 'approve');
+                }
+            } catch (err) {
+                console.error(`Erro ao processar auto-aceitar: ${err.message}`);
+            }
+        }
+    } catch (error) {
+        console.error(`❌ Erro em handleGroupJoinRequest: ${error.message}`);
     }
 }
 
@@ -957,6 +985,15 @@ async function performMigration(NazunaSock) {
 
 }
 
+// Variáveis de controle de reconexão (declaradas aqui para evitar temporal dead zone)
+let reconnectAttempts = 0;
+let isReconnecting = false; // Flag para evitar múltiplas reconexões simultâneas
+let reconnectTimer = null; // Timer de reconexão para poder cancelar
+let forbidden403Attempts = 0; // Contador específico para erro 403
+const MAX_RECONNECT_ATTEMPTS = 10;
+const MAX_403_ATTEMPTS = 3; // Máximo de 3 tentativas para erro 403
+const RECONNECT_DELAY_BASE = 5000; // 5 segundos base
+
 async function createBotSocket(authDir) {
     try {
         await fs.mkdir(path.join(DATABASE_DIR, 'grupos'), { recursive: true });
@@ -966,7 +1003,11 @@ async function createBotSocket(authDir) {
             saveCreds,
             signalRepository
         } = await useMultiFileAuthState(authDir, makeCacheableSignalKeyStore);
-        const { version } = await fetchBaileysVersionFromGitHub();
+        
+        // Busca a versão mais recente do Baileys
+        const { version } = await fetchLatestBaileysVersion();
+        console.log(`📱 Usando versão do WhatsApp: ${version.join('.')}`);
+        
         const NazunaSock = makeWASocket({
             version,
             emitOwnEvents: true,
@@ -979,7 +1020,7 @@ async function createBotSocket(authDir) {
             qrTimeout: 180000,
             keepAliveIntervalMs: 30_000,
             defaultQueryTimeoutMs: undefined,
-            browser: ['Mac OS', 'Safari', '18.6'],
+            browser: ['Windows', 'Edge', '143.0.3650.66'],
             msgRetryCounterCache,
             auth: state,
             signalRepository,
@@ -1004,6 +1045,17 @@ async function createBotSocket(authDir) {
         NazunaSock.ev.on('groups.update', async (updates) => {
             if (!Array.isArray(updates) || updates.length === 0) return;
             
+            if (DEBUG_MODE) {
+                console.log('\n🐛 ========== GROUPS UPDATE ==========');
+                console.log('📅 Timestamp:', new Date().toISOString());
+                console.log('📊 Number of updates:', updates.length);
+                updates.forEach((update, index) => {
+                    console.log(`\n--- Update ${index + 1} ---`);
+                    console.log('📦 Update data:', JSON.stringify(update, null, 2));
+                });
+                console.log('🐛 ====================================\n');
+            }
+            
             // Processa atualizações em lote para melhor performance
             const updatePromises = updates.map(async ([ev]) => {
                 if (!ev || !ev.id) return;
@@ -1012,6 +1064,9 @@ async function createBotSocket(authDir) {
                     const meta = await NazunaSock.groupMetadata(ev.id).catch(() => null);
                     if (meta) {
                         // Metadados atualizados, pode ser usado para cache futuro
+                        if (DEBUG_MODE) {
+                            console.log('🐛 Metadata fetched for group:', ev.id);
+                        }
                     }
                 } catch (e) {
                     console.error(`❌ Erro ao atualizar metadados do grupo ${ev.id}: ${e.message}`);
@@ -1022,7 +1077,34 @@ async function createBotSocket(authDir) {
         });
 
         NazunaSock.ev.on('group-participants.update', async (inf) => {
+            if (DEBUG_MODE) {
+                console.log('\n🐛 ========== GROUP PARTICIPANTS UPDATE ==========');
+                console.log('📅 Timestamp:', new Date().toISOString());
+                console.log('🆔 Group ID:', inf.id || inf.jid || 'unknown');
+                console.log('⚡ Action:', inf.action);
+                console.log('👥 Participants:', inf.participants);
+                console.log('� Author:', inf.author || 'N/A');
+                console.log('�📦 Full event data:', JSON.stringify(inf, null, 2));
+                console.log('🐛 ================================================\n');
+            }
             await handleGroupParticipantsUpdate(NazunaSock, inf);
+        });
+        
+        // Listener para solicitações de entrada em grupos (join requests)
+        NazunaSock.ev.on('group.join-request', async (inf) => {
+            if (DEBUG_MODE) {
+                console.log('\n🐛 ========== GROUP JOIN REQUEST ==========');
+                console.log('📅 Timestamp:', new Date().toISOString());
+                console.log('🆔 Group ID:', inf.id);
+                console.log('⚡ Action:', inf.action);
+                console.log('👤 Participant:', inf.participant);
+                console.log('📱 Participant Phone:', inf.participantPn);
+                console.log('👮 Author:', inf.author);
+                console.log('📝 Method:', inf.method);
+                console.log('📦 Full event data:', JSON.stringify(inf, null, 2));
+                console.log('🐛 ===========================================\n');
+            }
+            await handleGroupJoinRequest(NazunaSock, inf);
         });
 
         let messagesListenerAttached = false;
@@ -1052,11 +1134,19 @@ async function createBotSocket(authDir) {
         messageQueue.setErrorHandler(queueErrorHandler);
 
         const processMessage = async (info) => {
-            if (!info || !info.message || !info.key?.remoteJid) {
-                return;
+            // Verifica se é uma solicitação de entrada (messageStubType no info, não em message)
+            const isJoinRequest = info?.messageStubType === 172; // GROUP_MEMBERSHIP_JOIN_APPROVAL_REQUEST_NON_ADMIN_ADD
+          
+            // Solicitações de entrada não têm message, apenas messageStubType
+            if (isJoinRequest) {
+                // Cria um objeto message fake para o index.js processar
+                info.message = {
+                    messageStubType: info.messageStubType,
+                    messageStubParameters: info.messageStubParameters
+                };
             }
-                
-            if (info?.WebMessageInfo) {
+            
+            if (!info || !info.message || !info.key?.remoteJid) {
                 return;
             }
             
@@ -1080,10 +1170,19 @@ async function createBotSocket(authDir) {
             messagesListenerAttached = true;
 
             NazunaSock.ev.on('messages.upsert', async (m) => {
-                if (!m.messages || !Array.isArray(m.messages) || m.type !== 'notify')
-                    return;
+                if (!m.messages || !Array.isArray(m.messages)) return;
+                
+                // Se for 'append', só processa se for solicitação de entrada (messageStubType 172)
+                if (m.type === 'append') {
+                    const isJoinRequest = m.messages.some(info => info?.messageStubType === 172);
+                    if (!isJoinRequest) return;
+                }
+                
+                // Processa 'notify' (mensagens normais) e 'append' (apenas solicitações de entrada)
+                if (m.type !== 'notify' && m.type !== 'append') return;
                     
                 try {
+                    
                     const messageProcessingPromises = m.messages.map(info =>
                         messageQueue.add(info, processMessage).catch(err => {
                             console.error(`❌ Failed to queue message ${info.key?.id}: ${err.message}`);
@@ -1180,6 +1279,7 @@ async function createBotSocket(authDir) {
                 const reasonMessage = {
                     [DisconnectReason.loggedOut]: 'Deslogado do WhatsApp',
                     401: 'Sessão expirada',
+                    403: 'Acesso proibido (Forbidden)',
                     [DisconnectReason.connectionClosed]: 'Conexão fechada',
                     [DisconnectReason.connectionLost]: 'Conexão perdida',
                     [DisconnectReason.connectionReplaced]: 'Conexão substituída',
@@ -1196,9 +1296,41 @@ async function createBotSocket(authDir) {
                     cacheCleanupInterval = null;
                 }
                 
+                // Tratamento especial para erro 403 (Forbidden)
+                if (reason === 403) {
+                    forbidden403Attempts++;
+                    console.log(`⚠️ Erro 403 detectado. Tentativa ${forbidden403Attempts}/${MAX_403_ATTEMPTS}`);
+                    
+                    if (forbidden403Attempts >= MAX_403_ATTEMPTS) {
+                        console.log('❌ Máximo de tentativas para erro 403 atingido. Apagando QR code e parando...');
+                        await clearAuthDir();
+                        console.log('🗑️ Autenticação removida. Reinicie o bot para gerar um novo QR code.');
+                        process.exit(1);
+                    }
+                    
+                    // Aguarda antes de tentar reconectar
+                    console.log('🔄 Tentando reconectar em 5 segundos...');
+                    if (reconnectTimer) {
+                        clearTimeout(reconnectTimer);
+                    }
+                    reconnectTimer = setTimeout(() => {
+                        startNazu();
+                    }, 5000);
+                    return;
+                }
+                
+                // Reset do contador 403 se for outro tipo de erro
+                forbidden403Attempts = 0;
+                
                 if (reason === DisconnectReason.badSession || reason === DisconnectReason.loggedOut) {
                     await clearAuthDir();
                     console.log('🔄 Nova autenticação será necessária na próxima inicialização.');
+                }
+                
+                // Não reconecta se conexão foi substituída (outra instância assumiu)
+                if (reason === DisconnectReason.connectionReplaced) {
+                    console.log('⚠️ Conexão substituída por outra instância. Não reconectando para evitar conflito.');
+                    return;
                 }
                 
                 // Delay antes de reconectar baseado no motivo
@@ -1212,8 +1344,15 @@ async function createBotSocket(authDir) {
                 }
                 
                 console.log(`🔄 Aguardando ${reconnectDelay / 1000} segundos antes de reconectar...`);
-                setTimeout(() => {
+                
+                // Cancela timer anterior se existir
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                }
+                
+                reconnectTimer = setTimeout(() => {
                     reconnectAttempts = 0; // Reset ao reconectar por desconexão normal
+                    forbidden403Attempts = 0; // Reset contador de erro 403
                     startNazu();
                 }, reconnectDelay);
             }
@@ -1225,15 +1364,21 @@ async function createBotSocket(authDir) {
     }
 }
 
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 10;
-const RECONNECT_DELAY_BASE = 5000; // 5 segundos base
-
 async function startNazu() {
+    // Evita múltiplas instâncias sendo criadas ao mesmo tempo
+    if (isReconnecting) {
+        console.log('⚠️ Reconexão já em andamento, ignorando chamada duplicada...');
+        return;
+    }
+    
+    isReconnecting = true;
+    
     try {
         reconnectAttempts = 0; // Reset contador ao conectar com sucesso
+        forbidden403Attempts = 0; // Reset contador de erro 403
         console.log('🚀 Iniciando Nazuna...');
         await createBotSocket(AUTH_DIR);
+        isReconnecting = false; // Conexão estabelecida com sucesso
     } catch (err) {
         reconnectAttempts++;
         console.error(`❌ Erro ao iniciar o bot (tentativa ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}): ${err.message}`);
@@ -1241,6 +1386,7 @@ async function startNazu() {
         // Se excedeu tentativas, para de tentar
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
             console.error(`❌ Máximo de tentativas de reconexão alcançado (${MAX_RECONNECT_ATTEMPTS}). Parando...`);
+            isReconnecting = false;
             process.exit(1);
         }
         
@@ -1258,7 +1404,14 @@ async function startNazu() {
         const delay = Math.min(RECONNECT_DELAY_BASE * Math.pow(1.5, reconnectAttempts - 1), 60000);
         console.log(`🔄 Aguardando ${Math.round(delay / 1000)} segundos antes de tentar novamente...`);
         
-        setTimeout(() => {
+        // Cancela timer anterior se existir
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+        }
+        
+        // Permite nova tentativa de reconexão após o delay
+        isReconnecting = false;
+        reconnectTimer = setTimeout(() => {
             startNazu();
         }, delay);
     }
@@ -1270,6 +1423,13 @@ async function startNazu() {
 async function gracefulShutdown(signal) {
     const signalName = signal === 'SIGTERM' ? 'SIGTERM' : 'SIGINT';
     console.log(`📡 ${signalName} recebido, parando bot graciosamente...`);
+    
+    // Cancela qualquer timer de reconexão pendente
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+    }
+    isReconnecting = false;
     
     let shutdownTimeout;
     

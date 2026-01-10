@@ -36,6 +36,9 @@ import {
   CODIGOS_ALUGUEL_FILE,
   RELATIONSHIPS_FILE,
   CUSTOM_COMMANDS_FILE,
+  GROUP_CUSTOMIZATION_FILE,
+  MENU_AUDIO_FILE,
+  MENU_LERMAIS_FILE,
   CONFIG_FILE
 } from './paths.js';
 
@@ -114,24 +117,91 @@ ensureJsonFileExists(ECONOMY_FILE, {
     "rod": { name: "Vara de Pesca", price: 400, type: "tool", effect: { fishBonus: 0.2 } },
     "lamp": { name: "Lanterna", price: 600, type: "tool", effect: { exploreBonus: 0.2 } },
     "bow": { name: "Arco de Caça", price: 800, type: "tool", effect: { huntBonus: 0.25 } },
-    "forge": { name: "Kit de Forja", price: 1200, type: "tool", effect: { forgeBonus: 0.25 } }
-    ,
+    "forge": { name: "Kit de Forja", price: 1200, type: "tool", effect: { forgeBonus: 0.25 } },
+    // Player Equipment - Weapons
+    "espada_ferro": { name: "Espada de Ferro", price: 800, type: "equipment", slot: "weapon", attackBonus: 10, durability: 50 },
+    "espada_aco": { name: "Espada de Aço", price: 1500, type: "equipment", slot: "weapon", attackBonus: 18, durability: 80 },
+    "espada_diamante": { name: "Espada de Diamante", price: 3000, type: "equipment", slot: "weapon", attackBonus: 30, durability: 120 },
+    "arco_basico": { name: "Arco Básico", price: 600, type: "equipment", slot: "weapon", attackBonus: 8, durability: 40 },
+    "arco_reforcado": { name: "Arco Reforçado", price: 1800, type: "equipment", slot: "weapon", attackBonus: 20, durability: 70 },
+    // Player Equipment - Armor
+    "armadura_couro": { name: "Armadura de Couro", price: 900, type: "equipment", slot: "armor", defenseBonus: 8, durability: 60 },
+    "armadura_ferro": { name: "Armadura de Ferro", price: 2400, type: "equipment", slot: "armor", defenseBonus: 20, durability: 100 },
+    "armadura_aco": { name: "Armadura de Aço", price: 3600, type: "equipment", slot: "armor", defenseBonus: 32, durability: 140 },
+    "escudo_madeira": { name: "Escudo de Madeira", price: 450, type: "equipment", slot: "shield", defenseBonus: 5, durability: 30 },
+    "escudo_ferro": { name: "Escudo de Ferro", price: 1350, type: "equipment", slot: "shield", defenseBonus: 15, durability: 60 },
+    // Player Equipment - Helmets
+    "elmo_couro": { name: "Elmo de Couro", price: 600, type: "equipment", slot: "helmet", defenseBonus: 4, durability: 40 },
+    "elmo_ferro": { name: "Elmo de Ferro", price: 1200, type: "equipment", slot: "helmet", defenseBonus: 12, durability: 70 },
+    "elmo_aco": { name: "Elmo de Aço", price: 2100, type: "equipment", slot: "helmet", defenseBonus: 20, durability: 100 },
+    // Player Equipment - Boots
+    "botas_couro": { name: "Botas de Couro", price: 750, type: "equipment", slot: "boots", defenseBonus: 3, durability: 45 },
+    "botas_ferro": { name: "Botas de Ferro", price: 1500, type: "equipment", slot: "boots", defenseBonus: 10, durability: 80 },
+    "botas_aco": { name: "Botas de Aço", price: 2700, type: "equipment", slot: "boots", defenseBonus: 18, durability: 120 },
+    // Player Equipment - Accessories
+    "anel_ferro": { name: "Anel de Ferro", price: 1050, type: "equipment", slot: "accessory", attackBonus: 5, defenseBonus: 3, durability: 50 },
+    "anel_ouro": { name: "Anel de Ouro", price: 2400, type: "equipment", slot: "accessory", attackBonus: 12, defenseBonus: 8, durability: 80 },
+    "amuleto_protecao": { name: "Amuleto de Proteção", price: 3000, type: "equipment", slot: "accessory", defenseBonus: 15, hpBonus: 20, durability: 100 },
+    "luvas_ferro": { name: "Luvas de Ferro", price: 900, type: "equipment", slot: "accessory", attackBonus: 4, defenseBonus: 4, durability: 40 },
+    "luvas_aco": { name: "Luvas de Aço", price: 1800, type: "equipment", slot: "accessory", attackBonus: 10, defenseBonus: 10, durability: 70 },
     // Equipamentos para pets
     "pet_sword": { name: "Espada para Pet", price: 1200, type: "pet_equipment", slot: "weapon", attackBonus: 15, durability: 30 },
     "pet_armor": { name: "Armadura para Pet", price: 1500, type: "pet_equipment", slot: "armor", defenseBonus: 12, durability: 40 },
     "pet_shield": { name: "Escudo para Pet", price: 1000, type: "pet_equipment", slot: "shield", defenseBonus: 8, durability: 50 },
-    "pet_ring": { name: "Anel do Pet", price: 700, type: "pet_equipment", slot: "accessory", attackBonus: 5, defenseBonus: 5, durability: 25 }
+    "pet_ring": { name: "Anel do Pet", price: 700, type: "pet_equipment", slot: "accessory", attackBonus: 5, defenseBonus: 5, durability: 25 },
+    // Novos itens de vantagem
+    "dragonslayer": { name: "Mata-Dragões", price: 3000, type: "pet_equipment", slot: "weapon", attackBonus: 20, advantage: "dragao", durability: 40 },
+    "wolfbane": { name: "Maldiç ão Lobisomem", price: 2500, type: "pet_equipment", slot: "weapon", attackBonus: 18, advantage: "lobo", durability: 35 },
+    "phoenix_feather": { name: "Pena de Fênix", price: 2800, type: "pet_equipment", slot: "accessory", hpBonus: 30, advantage: "fenix", durability: 30 },
+    "tiger_talisman": { name: "Talismã do Tigre", price: 2200, type: "pet_equipment", slot: "accessory", attackBonus: 12, advantage: "tigre", durability: 25 },
+    "eagle_eye": { name: "Olho de Águia", price: 2400, type: "pet_equipment", slot: "accessory", critBonus: 15, advantage: "aguia", durability: 30 },
+    "mystic_collar": { name: "Coleira Mística", price: 3500, type: "pet_equipment", slot: "accessory", attackBonus: 10, defenseBonus: 10, hpBonus: 20, durability: 50 },
+    "battle_potion": { name: "Poção de Batalha", price: 500, type: "consumable", effect: { tempAttack: 10, duration: 3 } },
+    "defense_potion": { name: "Poção de Defesa", price: 500, type: "consumable", effect: { tempDefense: 10, duration: 3 } },
+    "evolution_stone": { name: "Pedra da Evolução", price: 10000, type: "consumable", effect: { evolve: true } }
   },
   materialsPrices: {
     pedra: 2,
     ferro: 6,
     ouro: 12,
-    diamante: 30
+    diamante: 30,
+    madeira: 1,
+    corda: 3,
+    couro: 4,
+    linha: 2,
+    carvao: 5,
+    cristal: 25
   },
   recipes: {
     pickaxe_bronze: { requires: { pedra: 10, ferro: 2 }, gold: 100 },
     pickaxe_ferro: { requires: { ferro: 10, ouro: 2 }, gold: 300 },
-    pickaxe_diamante: { requires: { ouro: 10, diamante: 4 }, gold: 1200 }
+    pickaxe_diamante: { requires: { ouro: 10, diamante: 4 }, gold: 1200 },
+    // Weapons
+    espada_ferro: { requires: { ferro: 15, madeira: 5 }, gold: 250 },
+    espada_aco: { requires: { ferro: 25, carvao: 10 }, gold: 500 },
+    espada_diamante: { requires: { diamante: 8, ferro: 20 }, gold: 1500 },
+    arco_basico: { requires: { madeira: 10, corda: 3 }, gold: 200 },
+    arco_reforcado: { requires: { madeira: 15, ferro: 12 }, gold: 600 },
+    // Armor
+    armadura_couro: { requires: { couro: 20, linha: 5 }, gold: 300 },
+    armadura_ferro: { requires: { ferro: 30, couro: 15 }, gold: 800 },
+    armadura_aco: { requires: { ferro: 40, carvao: 15 }, gold: 1200 },
+    escudo_madeira: { requires: { madeira: 15, ferro: 5 }, gold: 150 },
+    escudo_ferro: { requires: { ferro: 25, madeira: 10 }, gold: 450 },
+    // Helmets
+    elmo_couro: { requires: { couro: 10, linha: 3 }, gold: 200 },
+    elmo_ferro: { requires: { ferro: 15, couro: 8 }, gold: 400 },
+    elmo_aco: { requires: { ferro: 20, carvao: 8 }, gold: 700 },
+    // Boots
+    botas_couro: { requires: { couro: 12, linha: 4 }, gold: 250 },
+    botas_ferro: { requires: { ferro: 18, couro: 10 }, gold: 500 },
+    botas_aco: { requires: { ferro: 25, carvao: 10 }, gold: 900 },
+    // Accessories
+    anel_ferro: { requires: { ferro: 8, ouro: 2 }, gold: 350 },
+    anel_ouro: { requires: { ouro: 12, diamante: 2 }, gold: 800 },
+    amuleto_protecao: { requires: { cristal: 5, ouro: 8 }, gold: 1000 },
+    luvas_ferro: { requires: { ferro: 10, couro: 5 }, gold: 300 },
+    luvas_aco: { requires: { ferro: 15, carvao: 6 }, gold: 600 }
   },
   jobCatalog: {
     "estagiario": { name: "Estagiário", min: 80, max: 140 },
@@ -244,7 +314,7 @@ Muito obrigada por ter me escolhido! Fui desenvolvida do zero pelo *Hiudy* e sã
 Espero que você goste da bot! ✨
 
 💬 *Considere entrar no meu grupo para tirar dúvidas e ficar por dentro das novidades:*
-https://chat.whatsapp.com/D0SWnrh2OlxGSmOc3GLFkP
+https://chat.whatsapp.com/Ev4juPpjZYFF6xYJnkPcAF
 
 _Para desativar esta mensagem de inicialização, use o comando *msgboton*_`
 });
@@ -419,7 +489,7 @@ Muito obrigada por ter me escolhido! Fui desenvolvida do zero pelo *Hiudy* e sã
 Espero que você goste da bot! ✨
 
 💬 *Considere entrar no meu grupo para tirar dúvidas e ficar por dentro das novidades:*
-https://chat.whatsapp.com/D0SWnrh2OlxGSmOc3GLFkP
+https://chat.whatsapp.com/Ev4juPpjZYFF6xYJnkPcAF
 
 _Para desativar esta mensagem de inicialização, use o comando *msgboton*_`
   });
@@ -1135,6 +1205,15 @@ function loadEconomy() {
     if (!data.shop || typeof data.shop !== 'object') data.shop = {};
     if (!data.jobCatalog || typeof data.jobCatalog !== 'object') data.jobCatalog = {};
     
+    // 🔧 AUTO-REPARO: Aplica migração automática
+    const needsSave = ensureEconomyDefaults(data);
+    
+    // Se houve mudanças, salva automaticamente
+    if (needsSave) {
+      console.log('🔧 Sistema de migração detectou e corrigiu dados faltantes/incorretos');
+      saveEconomy(data);
+    }
+    
     return data;
   } catch (error) {
     console.error('❌ Erro crítico ao carregar economia:', error.message);
@@ -1161,38 +1240,347 @@ function getEcoUser(econ, userId) {
   try {
     if (!econ || typeof econ !== 'object') {
       console.error('❌ getEcoUser: economia inválida');
-      return { wallet: 0, bank: 0, cooldowns: {}, inventory: {}, job: null, tools: {}, materials: {}, challenge: null, weeklyChallenge: null, monthlyChallenge: null, skills: {}, properties: {} };
+      return createDefaultEcoUser();
     }
     
     if (!userId || typeof userId !== 'string') {
       console.error('❌ getEcoUser: userId inválido');
-      return { wallet: 0, bank: 0, cooldowns: {}, inventory: {}, job: null, tools: {}, materials: {}, challenge: null, weeklyChallenge: null, monthlyChallenge: null, skills: {}, properties: {} };
+      return createDefaultEcoUser();
     }
     
     econ.users = econ.users || {};
-    econ.users[userId] = econ.users[userId] || { wallet: 0, bank: 0, cooldowns: {}, inventory: {}, job: null, tools: {}, materials: {}, challenge: null, weeklyChallenge: null, monthlyChallenge: null, skills: {}, properties: {} };
     
-    const u = econ.users[userId];
+    // Se usuário não existe, cria com estrutura completa
+    if (!econ.users[userId]) {
+      econ.users[userId] = createDefaultEcoUser();
+      return econ.users[userId];
+    }
     
-    // Validação e correção de campos
-    u.wallet = typeof u.wallet === 'number' && !isNaN(u.wallet) ? Math.max(0, Math.floor(u.wallet)) : 0;
-    u.bank = typeof u.bank === 'number' && !isNaN(u.bank) ? Math.max(0, Math.floor(u.bank)) : 0;
-    u.cooldowns = (u.cooldowns && typeof u.cooldowns === 'object') ? u.cooldowns : {};
-    u.inventory = (u.inventory && typeof u.inventory === 'object') ? u.inventory : {};
-    if (typeof u.job === 'undefined') u.job = null;
-    u.tools = (u.tools && typeof u.tools === 'object') ? u.tools : {};
-    u.materials = (u.materials && typeof u.materials === 'object') ? u.materials : {};
-    u.challenge = u.challenge || null;
-    u.weeklyChallenge = u.weeklyChallenge || null;
-    u.monthlyChallenge = u.monthlyChallenge || null;
-    u.skills = (u.skills && typeof u.skills === 'object') ? u.skills : {};
-    u.properties = (u.properties && typeof u.properties === 'object') ? u.properties : {};
+    // Migra e valida usuário existente
+    econ.users[userId] = migrateAndValidateEcoUser(econ.users[userId]);
     
-    return u;
+    return econ.users[userId];
   } catch (error) {
     console.error('❌ Erro em getEcoUser:', error.message);
-    return { wallet: 0, bank: 0, cooldowns: {}, inventory: {}, job: null, tools: {}, materials: {}, challenge: null, weeklyChallenge: null, monthlyChallenge: null, skills: {}, properties: {} };
+    return createDefaultEcoUser();
   }
+}
+
+/**
+ * Cria estrutura padrão completa de um usuário da economia
+ */
+function createDefaultEcoUser() {
+  return {
+    // Financeiro
+    wallet: 0,
+    bank: 0,
+    
+    // Sistema de itens
+    cooldowns: {},
+    inventory: {},
+    items: {}, // Novo sistema de itens (separado do inventory)
+    
+    // Trabalho e ferramentas
+    job: null,
+    tools: {},
+    materials: {},
+    
+    // Desafios
+    challenge: null,
+    weeklyChallenge: null,
+    monthlyChallenge: null,
+    
+    // RPG - Stats base
+    level: 1,
+    exp: 0,
+    prestige: 0,
+    classe: null,
+    clan: null,
+    house: null,
+    family: null,
+    
+    // RPG - Stats de combate
+    power: 100,
+    hp: 100,
+    maxHp: 100,
+    mana: 50,
+    maxMana: 50,
+    stamina: 100,
+    maxStamina: 100,
+    
+    // RPG - Atributos
+    strength: 10,
+    defense: 10,
+    agility: 10,
+    intelligence: 10,
+    luck: 10,
+    
+    // RPG - Bonuses
+    attackBonus: 0,
+    defenseBonus: 0,
+    
+    // Skills e habilidades
+    skills: {},
+    
+    // Propriedades
+    properties: {},
+    
+    // Sistema de Pets
+    pets: [],
+    lastPetBattle: 0,
+    
+    // Estatísticas
+    totalWork: 0,
+    totalMine: 0,
+    totalFish: 0,
+    totalHunt: 0,
+    totalExplore: 0,
+    totalCrime: 0,
+    
+    // Estatísticas de batalha
+    battlesWon: 0,
+    battlesLost: 0,
+    
+    // Loteria
+    lotteryTickets: 0,
+    
+    // Timestamps
+    createdAt: Date.now(),
+    lastDaily: 0,
+    lastWeekly: 0,
+    lastMonthly: 0
+  };
+}
+
+/**
+ * Migra e valida dados de usuário existente
+ * Adiciona campos faltantes e corrige valores inválidos
+ */
+function migrateAndValidateEcoUser(user) {
+  const defaults = createDefaultEcoUser();
+  
+  // Função auxiliar para validar e corrigir números
+  const validateNumber = (value, defaultValue = 0, min = 0, max = Infinity) => {
+    if (typeof value !== 'number' || isNaN(value)) return defaultValue;
+    return Math.max(min, Math.min(max, Math.floor(value)));
+  };
+  
+  // Função auxiliar para validar objetos
+  const validateObject = (value, defaultValue = {}) => {
+    return (value && typeof value === 'object' && !Array.isArray(value)) ? value : defaultValue;
+  };
+  
+  // Função auxiliar para validar arrays
+  const validateArray = (value, defaultValue = []) => {
+    return Array.isArray(value) ? value : defaultValue;
+  };
+  
+  // === FINANCEIRO ===
+  user.wallet = validateNumber(user.wallet, 0);
+  user.bank = validateNumber(user.bank, 0);
+  
+  // === SISTEMAS ===
+  user.cooldowns = validateObject(user.cooldowns);
+  user.inventory = validateObject(user.inventory);
+  user.items = validateObject(user.items);
+  user.tools = validateObject(user.tools);
+  user.materials = validateObject(user.materials);
+  
+  // === TRABALHO ===
+  user.job = user.job || null;
+  
+  // === DESAFIOS ===
+  user.challenge = user.challenge || null;
+  user.weeklyChallenge = user.weeklyChallenge || null;
+  user.monthlyChallenge = user.monthlyChallenge || null;
+  
+  // === RPG - STATS BASE ===
+  user.level = validateNumber(user.level, 1, 1);
+  user.exp = validateNumber(user.exp, 0);
+  user.prestige = validateNumber(user.prestige, 0);
+  user.classe = user.classe || null;
+  user.clan = user.clan || null;
+  user.house = user.house || null;
+  user.family = user.family || null;
+  
+  // === RPG - STATS DE COMBATE ===
+  user.power = validateNumber(user.power, 100);
+  user.hp = validateNumber(user.hp, 100);
+  user.maxHp = validateNumber(user.maxHp, 100);
+  user.mana = validateNumber(user.mana, 50);
+  user.maxMana = validateNumber(user.maxMana, 50);
+  user.stamina = validateNumber(user.stamina, 100);
+  user.maxStamina = validateNumber(user.maxStamina, 100);
+  
+  // === RPG - ATRIBUTOS ===
+  user.strength = validateNumber(user.strength, 10);
+  user.defense = validateNumber(user.defense, 10);
+  user.agility = validateNumber(user.agility, 10);
+  user.intelligence = validateNumber(user.intelligence, 10);
+  user.luck = validateNumber(user.luck, 10);
+  
+  // === RPG - BONUSES ===
+  user.attackBonus = validateNumber(user.attackBonus, 0);
+  user.defenseBonus = validateNumber(user.defenseBonus, 0);
+  
+  // === SKILLS E PROPRIEDADES ===
+  user.skills = validateObject(user.skills);
+  user.properties = validateObject(user.properties);
+  
+  // === SISTEMA DE PETS ===
+  user.pets = validateArray(user.pets);
+  user.lastPetBattle = validateNumber(user.lastPetBattle, 0);
+  
+  // Migra pets existentes para nova estrutura
+  if (user.pets.length > 0) {
+    user.pets = user.pets.map(pet => migrateAndValidatePet(pet));
+  }
+  
+  // === ESTATÍSTICAS ===
+  user.totalWork = validateNumber(user.totalWork, 0);
+  user.totalMine = validateNumber(user.totalMine, 0);
+  user.totalFish = validateNumber(user.totalFish, 0);
+  user.totalHunt = validateNumber(user.totalHunt, 0);
+  user.totalExplore = validateNumber(user.totalExplore, 0);
+  user.totalCrime = validateNumber(user.totalCrime, 0);
+  
+  // === ESTATÍSTICAS DE BATALHA ===
+  user.battlesWon = validateNumber(user.battlesWon, 0);
+  user.battlesLost = validateNumber(user.battlesLost, 0);
+  
+  // === LOTERIA ===
+  user.lotteryTickets = validateNumber(user.lotteryTickets, 0);
+  
+  // === TIMESTAMPS ===
+  user.createdAt = validateNumber(user.createdAt, Date.now());
+  user.lastDaily = validateNumber(user.lastDaily, 0);
+  user.lastWeekly = validateNumber(user.lastWeekly, 0);
+  user.lastMonthly = validateNumber(user.lastMonthly, 0);
+  
+  return user;
+}
+
+/**
+ * Migra e valida estrutura de um pet
+ */
+function migrateAndValidatePet(pet) {
+  if (!pet || typeof pet !== 'object') {
+    return null;
+  }
+  
+  const validateNumber = (value, defaultValue = 0) => {
+    if (typeof value !== 'number' || isNaN(value)) return defaultValue;
+    return Math.max(0, Math.floor(value));
+  };
+  
+  const validateObject = (value, defaultValue = {}) => {
+    return (value && typeof value === 'object' && !Array.isArray(value)) ? value : defaultValue;
+  };
+  
+  return {
+    // Identificação
+    name: pet.name || 'Pet',
+    emoji: pet.emoji || '🐾',
+    type: pet.type || 'lobo',
+    
+    // Stats base
+    hp: validateNumber(pet.hp, 100),
+    maxHp: validateNumber(pet.maxHp, 100),
+    attack: validateNumber(pet.attack, 15),
+    defense: validateNumber(pet.defense, 10),
+    speed: validateNumber(pet.speed, 18),
+    
+    // Elemento (novo campo)
+    element: pet.element || 'normal',
+    
+    // Progressão
+    level: validateNumber(pet.level, 1),
+    exp: validateNumber(pet.exp, 0),
+    evolutions: validateNumber(pet.evolutions, 0),
+    
+    // Cuidados
+    hunger: validateNumber(pet.hunger, 100),
+    mood: validateNumber(pet.mood, 100),
+    
+    // Estatísticas de batalha
+    wins: validateNumber(pet.wins, 0),
+    losses: validateNumber(pet.losses, 0),
+    
+    // Equipamentos (novo sistema de slots)
+    equipment: validateObject(pet.equipment),
+    
+    // Timestamps
+    lastUpdate: validateNumber(pet.lastUpdate, Date.now()),
+    lastTrain: validateNumber(pet.lastTrain, 0),
+    
+    // Custo original (para referência)
+    cost: validateNumber(pet.cost, 5000)
+  };
+}
+
+/**
+ * Diagnóstico completo do database
+ * Retorna relatório de problemas encontrados e corrigidos
+ */
+function diagnosticDatabase(econ) {
+  const report = {
+    totalUsers: 0,
+    usersMigrated: 0,
+    petsFixed: 0,
+    fieldsAdded: [],
+    errors: [],
+    warnings: []
+  };
+  
+  try {
+    if (!econ || !econ.users) {
+      report.errors.push('Estrutura de economia inválida');
+      return report;
+    }
+    
+    report.totalUsers = Object.keys(econ.users).length;
+    
+    // Verifica cada usuário
+    Object.entries(econ.users).forEach(([userId, user]) => {
+      const oldUser = JSON.stringify(user);
+      econ.users[userId] = migrateAndValidateEcoUser(user);
+      
+      if (oldUser !== JSON.stringify(econ.users[userId])) {
+        report.usersMigrated++;
+      }
+      
+      // Conta pets corrigidos
+      if (econ.users[userId].pets && econ.users[userId].pets.length > 0) {
+        econ.users[userId].pets.forEach((pet, idx) => {
+          const oldPet = JSON.stringify(pet);
+          econ.users[userId].pets[idx] = migrateAndValidatePet(pet);
+          if (oldPet !== JSON.stringify(econ.users[userId].pets[idx])) {
+            report.petsFixed++;
+          }
+        });
+      }
+    });
+    
+    // Verifica estrutura global
+    const globalChanged = ensureEconomyDefaults(econ);
+    if (globalChanged) {
+      report.fieldsAdded.push('Estruturas globais (shop, lottery, clans, etc.)');
+    }
+    
+    // Warnings específicos
+    if (econ.lottery && (!econ.lottery.lastDraw || econ.lottery.lastDraw < 1000000000000)) {
+      report.warnings.push('Loteria tinha data inválida (corrigido)');
+    }
+    
+    if (report.usersMigrated === 0 && report.petsFixed === 0 && !globalChanged) {
+      report.warnings.push('Nenhum problema detectado - database está OK!');
+    }
+    
+  } catch (error) {
+    report.errors.push(`Erro no diagnóstico: ${error.message}`);
+  }
+  
+  return report;
 }
 
 function parseAmount(text, maxValue) {
@@ -1216,13 +1604,13 @@ function timeLeft(targetMs) {
 function applyShopBonuses(user, econ) {
   const inv = user.inventory || {};
   const shop = econ.shop || {};
-  let mineBonus = 0; let workBonus = 0; let bankCapacity = Infinity; let fishBonus = 0; let exploreBonus = 0; let huntBonus = 0; let forgeBonus = 0;
+  let mineBonus = 0; let workBonus = 0; let bankCapacity = 10000; let fishBonus = 0; let exploreBonus = 0; let huntBonus = 0; let forgeBonus = 0;
   Object.entries(inv).forEach(([key, qty]) => {
     if (!qty || !shop[key]) return;
     const eff = shop[key].effect || {};
     if (eff.mineBonus) mineBonus += eff.mineBonus * qty;
     if (eff.workBonus) workBonus += eff.workBonus * qty;
-    if (eff.bankCapacity) bankCapacity = isFinite(bankCapacity) ? bankCapacity + eff.bankCapacity * qty : (eff.bankCapacity * qty);
+    if (eff.bankCapacity) bankCapacity = bankCapacity + eff.bankCapacity * qty;
     if (eff.fishBonus) fishBonus += eff.fishBonus * qty;
     if (eff.exploreBonus) exploreBonus += eff.exploreBonus * qty;
     if (eff.huntBonus) huntBonus += eff.huntBonus * qty;
@@ -1235,6 +1623,23 @@ function applyShopBonuses(user, econ) {
 const PICKAXE_TIER_MULT = { bronze: 1.0, ferro: 1.25, diamante: 1.6 };
 const PICKAXE_TIER_ORDER = { bronze: 1, ferro: 2, diamante: 3 };
 
+// Definição dos itens da loja (para referência em equipamentos de pets)
+const SHOP_ITEMS = {
+  "pet_sword": { name: "Espada para Pet", price: 1200, stats: { attack: 15 } },
+  "pet_armor": { name: "Armadura para Pet", price: 1500, stats: { defense: 12 } },
+  "pet_shield": { name: "Escudo para Pet", price: 1000, stats: { defense: 8 } },
+  "pet_ring": { name: "Anel do Pet", price: 700, stats: { attack: 5, defense: 5 } },
+  "dragonslayer": { name: "Mata-Dragões", price: 3000, stats: { attack: 20, critBonus: 5 }, advantage: "dragao" },
+  "wolfbane": { name: "Maldição Lobisomem", price: 2500, stats: { attack: 18 }, advantage: "lobo" },
+  "phoenix_feather": { name: "Pena de Fênix", price: 2800, stats: { attack: 15, speed: 10 }, advantage: "fenix" },
+  "tiger_talisman": { name: "Talismã do Tigre", price: 2200, stats: { attack: 12, defense: 5 }, advantage: "tigre" },
+  "eagle_eye": { name: "Olho de Águia", price: 2400, stats: { attack: 15, critBonus: 15 }, advantage: "aguia" },
+  "mystic_collar": { name: "Coleira Mística", price: 3500, stats: { attack: 10, defense: 10, speed: 5 } },
+  "battle_potion": { name: "Poção de Batalha", price: 500, stats: { attack: 10 }, consumable: true },
+  "defense_potion": { name: "Poção de Defesa", price: 500, stats: { defense: 10 }, consumable: true },
+  "evolution_stone": { name: "Pedra da Evolução", price: 10000, type: "evolution" }
+};
+
 function getActivePickaxe(user) {
   const pk = user.tools?.pickaxe;
   if (!pk || pk.dur <= 0) return null;
@@ -1243,37 +1648,151 @@ function getActivePickaxe(user) {
 
 function ensureEconomyDefaults(econ) {
   let changed = false;
+  
+  // Inicializa estruturas básicas
   econ.shop = econ.shop || {};
+  econ.users = econ.users || {};
+  
+  // === MIGRAÇÃO AUTOMÁTICA DE USUÁRIOS ===
+  // Migra todos os usuários existentes para nova estrutura
+  Object.keys(econ.users).forEach(userId => {
+    const oldUser = { ...econ.users[userId] };
+    econ.users[userId] = migrateAndValidateEcoUser(econ.users[userId]);
+    // Verifica se houve mudanças
+    if (JSON.stringify(oldUser) !== JSON.stringify(econ.users[userId])) {
+      changed = true;
+    }
+  });
+  
+  // === FERRAMENTAS PADRÃO ===
   const defs = {
     "pickaxe_bronze": { name: "Picareta de Bronze", price: 500, type: "tool", toolType: "pickaxe", tier: "bronze", durability: 20, effect: { mineBonus: 0.1 } },
     "pickaxe_ferro": { name: "Picareta de Ferro", price: 1500, type: "tool", toolType: "pickaxe", tier: "ferro", durability: 60, effect: { mineBonus: 0.25 } },
     "pickaxe_diamante": { name: "Picareta de Diamante", price: 5000, type: "tool", toolType: "pickaxe", tier: "diamante", durability: 150, effect: { mineBonus: 0.5 } },
     "repairkit": { name: "Kit de Reparos", price: 350, type: "consumable", effect: { repair: 40 } }
   };
-  for (const [k,v] of Object.entries(defs)) { if (!econ.shop[k]) { econ.shop[k]=v; changed=true; } }
-  econ.materialsPrices = econ.materialsPrices || { pedra: 2, ferro: 6, ouro: 12, diamante: 30 };
+  for (const [k,v] of Object.entries(defs)) { 
+    if (!econ.shop[k]) { 
+      econ.shop[k]=v; 
+      changed=true; 
+    } 
+  }
+  
+  // === MATERIAIS E RECEITAS ===
+  econ.materialsPrices = econ.materialsPrices || { 
+    pedra: 2, ferro: 6, ouro: 12, diamante: 30,
+    madeira: 1, corda: 3, couro: 4, linha: 2, carvao: 5, cristal: 25
+  };
   econ.recipes = econ.recipes || {
     pickaxe_bronze: { requires: { pedra: 10, ferro: 2 }, gold: 100 },
     pickaxe_ferro: { requires: { ferro: 10, ouro: 2 }, gold: 300 },
-    pickaxe_diamante: { requires: { ouro: 10, diamante: 4 }, gold: 1200 }
+    pickaxe_diamante: { requires: { ouro: 10, diamante: 4 }, gold: 1200 },
+    // Weapons
+    espada_ferro: { requires: { ferro: 15, madeira: 5 }, gold: 250 },
+    espada_aco: { requires: { ferro: 25, carvao: 10 }, gold: 500 },
+    espada_diamante: { requires: { diamante: 8, ferro: 20 }, gold: 1500 },
+    arco_basico: { requires: { madeira: 10, corda: 3 }, gold: 200 },
+    arco_reforcado: { requires: { madeira: 15, ferro: 12 }, gold: 600 },
+    // Armor
+    armadura_couro: { requires: { couro: 20, linha: 5 }, gold: 300 },
+    armadura_ferro: { requires: { ferro: 30, couro: 15 }, gold: 800 },
+    armadura_aco: { requires: { ferro: 40, carvao: 15 }, gold: 1200 },
+    escudo_madeira: { requires: { madeira: 15, ferro: 5 }, gold: 150 },
+    escudo_ferro: { requires: { ferro: 25, madeira: 10 }, gold: 450 },
+    // Helmets
+    elmo_couro: { requires: { couro: 10, linha: 3 }, gold: 200 },
+    elmo_ferro: { requires: { ferro: 15, couro: 8 }, gold: 400 },
+    elmo_aco: { requires: { ferro: 20, carvao: 8 }, gold: 700 },
+    // Boots
+    botas_couro: { requires: { couro: 12, linha: 4 }, gold: 250 },
+    botas_ferro: { requires: { ferro: 18, couro: 10 }, gold: 500 },
+    botas_aco: { requires: { ferro: 25, carvao: 10 }, gold: 900 },
+    // Accessories
+    anel_ferro: { requires: { ferro: 8, ouro: 2 }, gold: 350 },
+    anel_ouro: { requires: { ouro: 12, diamante: 2 }, gold: 800 },
+    amuleto_protecao: { requires: { cristal: 5, ouro: 8 }, gold: 1000 },
+    luvas_ferro: { requires: { ferro: 10, couro: 5 }, gold: 300 },
+    luvas_aco: { requires: { ferro: 15, carvao: 6 }, gold: 600 }
   };
-  // Mercado e Propriedades
-  if (!Array.isArray(econ.market)) { econ.market = []; changed = true; }
-  if (typeof econ.marketCounter !== 'number') { econ.marketCounter = 1; changed = true; }
+  
+  // === MERCADO ===
+  if (!Array.isArray(econ.market)) { 
+    econ.market = []; 
+    changed = true; 
+  }
+  if (typeof econ.marketCounter !== 'number') { 
+    econ.marketCounter = 1; 
+    changed = true; 
+  }
+  
+  // === PROPRIEDADES ===
   econ.propertiesCatalog = econ.propertiesCatalog || {
     casa: { name: 'Casa', price: 5000, upkeepPerDay: 50, incomeGoldPerDay: 80 },
     fazenda: { name: 'Fazenda', price: 15000, upkeepPerDay: 150, incomeMaterialsPerDay: { pedra: 6, ferro: 1 } },
     mina_privada: { name: 'Mina Privada', price: 30000, upkeepPerDay: 400, incomeMaterialsPerDay: { pedra: 12, ferro: 3, ouro: 1 } }
   };
-  // ===== Clãs =====
-  // Estrutura usada para armazenar clãs (guilds) do modo RPG
-  // Chave: id do clã, Valor: { id, name, leader, members: [], createdAt }
-  if (!econ.clans) { econ.clans = {}; changed = true; }
-  if (typeof econ.clanCounter !== 'number') { econ.clanCounter = 1; changed = true; }
-  // Garantir pendingInvites para compatibilidade com convites pendentes
-  for (const [k, c] of Object.entries(econ.clans || {})) {
-    if (!Array.isArray(c.pendingInvites)) c.pendingInvites = [];
+  
+  // === CLÃS ===
+  if (!econ.clans) { 
+    econ.clans = {}; 
+    changed = true; 
   }
+  if (typeof econ.clanCounter !== 'number') { 
+    econ.clanCounter = 1; 
+    changed = true; 
+  }
+  
+  // Garantir pendingInvites para compatibilidade
+  for (const [k, c] of Object.entries(econ.clans || {})) {
+    if (!Array.isArray(c.pendingInvites)) {
+      c.pendingInvites = [];
+      changed = true;
+    }
+  }
+  
+  // === LOTERIA ===
+  if (!econ.lottery) {
+    econ.lottery = {
+      jackpot: 10000,
+      lastDraw: Date.now(),
+      drawInterval: 86400000, // 24h
+      ticketPrice: 100,
+      winners: []
+    };
+    changed = true;
+  }
+  
+  // Corrige bug da loteria (data em 1970)
+  if (!econ.lottery.lastDraw || econ.lottery.lastDraw === 0 || econ.lottery.lastDraw < 1000000000000) {
+    econ.lottery.lastDraw = Date.now();
+    changed = true;
+  }
+  
+  // === SHOP ITEMS (itens de pets) ===
+  // Garante que os itens de pets existam no shop
+  const petItems = {
+    pet_sword: { name: 'Espada de Pet', price: 1200, stats: { attack: 15 } },
+    pet_armor: { name: 'Armadura de Pet', price: 1500, stats: { defense: 12 } },
+    pet_shield: { name: 'Escudo de Pet', price: 1000, stats: { defense: 8 } },
+    pet_ring: { name: 'Anel de Pet', price: 700, stats: { attack: 5, defense: 5 } },
+    dragonslayer: { name: 'Mata-Dragões', price: 3000, stats: { attack: 20, critBonus: 5 }, advantage: 'dragao' },
+    wolfbane: { name: 'Maldição Lobisomem', price: 2500, stats: { attack: 18 }, advantage: 'lobo' },
+    phoenix_feather: { name: 'Pena de Fênix', price: 2800, stats: { attack: 15, speed: 10 }, advantage: 'fenix' },
+    tiger_talisman: { name: 'Talismã do Tigre', price: 2200, stats: { attack: 12, defense: 5 }, advantage: 'tigre' },
+    eagle_eye: { name: 'Olho de Águia', price: 2400, stats: { attack: 15, critBonus: 15 }, advantage: 'aguia' },
+    mystic_collar: { name: 'Coleira Mística', price: 3500, stats: { attack: 10, defense: 10, speed: 5 } },
+    battle_potion: { name: 'Poção de Batalha', price: 500, stats: { attack: 10 }, consumable: true },
+    defense_potion: { name: 'Poção de Defesa', price: 500, stats: { defense: 10 }, consumable: true },
+    evolution_stone: { name: 'Pedra da Evolução', price: 10000, type: 'evolution' }
+  };
+  
+  for (const [k, v] of Object.entries(petItems)) {
+    if (!econ.shop[k]) {
+      econ.shop[k] = v;
+      changed = true;
+    }
+  }
+  
   return changed;
 }
 
@@ -2288,6 +2807,8 @@ const formatTimeLeft = (milliseconds) => {
   }
 };
 
+/*
+// ANTIGO EXPORT - COMENTADO PARA EVITAR DUPLICAÇÃO
 export {
   runDatabaseSelfTest,
   loadMsgPrefix,
@@ -2332,12 +2853,17 @@ export {
   loadEconomy,
   saveEconomy,
   getEcoUser,
+  createDefaultEcoUser,
+  migrateAndValidateEcoUser,
+  migrateAndValidatePet,
+  diagnosticDatabase,
   parseAmount,
   fmt,
   timeLeft,
   applyShopBonuses,
   PICKAXE_TIER_MULT,
   PICKAXE_TIER_ORDER,
+  SHOP_ITEMS,
   getActivePickaxe,
   ensureEconomyDefaults,
   giveMaterial,
@@ -2416,4 +2942,321 @@ export {
   resolveParamAlias,
   matchParam,
   PARAM_ALIASES
+};
+
+*/
+
+// ============== SISTEMA DE PERSONALIZAÇÃO DE GRUPO ==============
+
+const loadGroupCustomization = () => {
+  ensureJsonFileExists(GROUP_CUSTOMIZATION_FILE, { enabled: false, groups: {} });
+  return loadJsonFile(GROUP_CUSTOMIZATION_FILE);
+};
+
+const saveGroupCustomization = (data) => {
+  fs.writeFileSync(GROUP_CUSTOMIZATION_FILE, JSON.stringify(data, null, 2));
+};
+
+const isGroupCustomizationEnabled = () => {
+  const data = loadGroupCustomization();
+  return data.enabled || false;
+};
+
+const setGroupCustomizationEnabled = (enabled) => {
+  const data = loadGroupCustomization();
+  data.enabled = enabled;
+  saveGroupCustomization(data);
+  return data.enabled;
+};
+
+const getGroupCustomization = (groupId) => {
+  if (!isGroupCustomizationEnabled()) return null;
+  const data = loadGroupCustomization();
+  return data.groups[groupId] || null;
+};
+
+const setGroupCustomName = (groupId, customName) => {
+  const data = loadGroupCustomization();
+  if (!data.groups[groupId]) {
+    data.groups[groupId] = {};
+  }
+  data.groups[groupId].customName = customName;
+  saveGroupCustomization(data);
+  return true;
+};
+
+const setGroupCustomPhoto = (groupId, photoPath) => {
+  const data = loadGroupCustomization();
+  if (!data.groups[groupId]) {
+    data.groups[groupId] = {};
+  }
+  data.groups[groupId].customPhoto = photoPath;
+  saveGroupCustomization(data);
+  return true;
+};
+
+const removeGroupCustomName = (groupId) => {
+  const data = loadGroupCustomization();
+  if (data.groups[groupId]) {
+    delete data.groups[groupId].customName;
+    if (Object.keys(data.groups[groupId]).length === 0) {
+      delete data.groups[groupId];
+    }
+    saveGroupCustomization(data);
+  }
+  return true;
+};
+
+const removeGroupCustomPhoto = (groupId) => {
+  const data = loadGroupCustomization();
+  if (data.groups[groupId]) {
+    // Remove o arquivo físico se existir
+    if (data.groups[groupId].customPhoto && fs.existsSync(data.groups[groupId].customPhoto)) {
+      fs.unlinkSync(data.groups[groupId].customPhoto);
+    }
+    delete data.groups[groupId].customPhoto;
+    if (Object.keys(data.groups[groupId]).length === 0) {
+      delete data.groups[groupId];
+    }
+    saveGroupCustomization(data);
+  }
+  return true;
+};
+
+// ============== SISTEMA DE ÁUDIO DO MENU ==============
+
+const loadMenuAudio = () => {
+  ensureJsonFileExists(MENU_AUDIO_FILE, { enabled: false, audioPath: null });
+  return loadJsonFile(MENU_AUDIO_FILE);
+};
+
+const saveMenuAudio = (data) => {
+  fs.writeFileSync(MENU_AUDIO_FILE, JSON.stringify(data, null, 2));
+};
+
+const isMenuAudioEnabled = () => {
+  const data = loadMenuAudio();
+  return data.enabled && data.audioPath && fs.existsSync(data.audioPath);
+};
+
+const getMenuAudioPath = () => {
+  const data = loadMenuAudio();
+  if (data.enabled && data.audioPath && fs.existsSync(data.audioPath)) {
+    return data.audioPath;
+  }
+  return null;
+};
+
+const setMenuAudio = (audioPath) => {
+  const data = loadMenuAudio();
+  data.enabled = true;
+  data.audioPath = audioPath;
+  saveMenuAudio(data);
+  return true;
+};
+
+const removeMenuAudio = () => {
+  const data = loadMenuAudio();
+  
+  // Remove o arquivo físico se existir
+  if (data.audioPath && fs.existsSync(data.audioPath)) {
+    try {
+      fs.unlinkSync(data.audioPath);
+    } catch (error) {
+      console.error('Erro ao remover áudio:', error);
+    }
+  }
+  
+  data.enabled = false;
+  data.audioPath = null;
+  saveMenuAudio(data);
+  return true;
+};
+
+// ============== SISTEMA DE LER MAIS DO MENU ==============
+
+const loadMenuLerMais = () => {
+  ensureJsonFileExists(MENU_LERMAIS_FILE, { enabled: true });
+  return loadJsonFile(MENU_LERMAIS_FILE);
+};
+
+const saveMenuLerMais = (data) => {
+  fs.writeFileSync(MENU_LERMAIS_FILE, JSON.stringify(data, null, 2));
+};
+
+const isMenuLerMaisEnabled = () => {
+  const data = loadMenuLerMais();
+  return data.enabled !== false; // Por padrão ativo
+};
+
+const setMenuLerMais = (enabled) => {
+  const data = loadMenuLerMais();
+  data.enabled = enabled;
+  saveMenuLerMais(data);
+  return data.enabled;
+};
+
+const getMenuLerMaisText = () => {
+  if (!isMenuLerMaisEnabled()) {
+    return '';
+  }
+  // Caracteres invisíveis para o "ler mais"
+  return '‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎\n';
+};
+
+export {
+  runDatabaseSelfTest,
+  loadMsgPrefix,
+  saveMsgPrefix,
+  loadMsgBotOn,
+  saveMsgBotOn,
+  loadCmdNotFoundConfig,
+  saveCmdNotFoundConfig,
+  validateMessageTemplate,
+  formatMessageWithFallback,
+  loadCustomReacts,
+  saveCustomReacts,
+  loadReminders,
+  saveReminders,
+  addCustomReact,
+  deleteCustomReact,
+  loadDivulgacao,
+  saveDivulgacao,
+  loadSubdonos,
+  saveSubdonos,
+  isSubdono,
+  addSubdono,
+  removeSubdono,
+  getSubdonos,
+  loadRentalData,
+  saveRentalData,
+  isRentalModeActive,
+  setRentalMode,
+  getGroupRentalStatus,
+  setGroupRental,
+  loadActivationCodes,
+  saveActivationCodes,
+  generateActivationCode,
+  validateActivationCode,
+  useActivationCode,
+  extendGroupRental,
+  isModoLiteActive,
+  loadParceriasData,
+  saveParceriasData,
+  calculateNextLevelXp,
+  getPatent,
+  loadEconomy,
+  saveEconomy,
+  getEcoUser,
+  createDefaultEcoUser,
+  migrateAndValidateEcoUser,
+  migrateAndValidatePet,
+  diagnosticDatabase,
+  parseAmount,
+  fmt,
+  timeLeft,
+  applyShopBonuses,
+  PICKAXE_TIER_MULT,
+  PICKAXE_TIER_ORDER,
+  SHOP_ITEMS,
+  getActivePickaxe,
+  ensureEconomyDefaults,
+  giveMaterial,
+  generateDailyChallenge,
+  ensureUserChallenge,
+  updateChallenge,
+  isChallengeCompleted,
+  updateQuestProgress,
+  SKILL_LIST,
+  ensureUserSkills,
+  skillXpForNext,
+  addSkillXP,
+  getSkillBonus,
+  endOfWeekTimestamp,
+  endOfMonthTimestamp,
+  generateWeeklyChallenge,
+  generateMonthlyChallenge,
+  ensureUserPeriodChallenges,
+  updatePeriodChallenge,
+  isPeriodCompleted,
+  checkLevelUp,
+  checkLevelDown,
+  loadCustomAutoResponses,
+  saveCustomAutoResponses,
+  loadGroupAutoResponses,
+  saveGroupAutoResponses,
+  addAutoResponse,
+  deleteAutoResponse,
+  processAutoResponse,
+  sendAutoResponse,
+  loadCustomCommands,
+  saveCustomCommands,
+  removeCustomCommand,
+  findCustomCommand,
+  loadNoPrefixCommands,
+  saveNoPrefixCommands,
+  loadCommandAliases,
+  saveCommandAliases,
+  loadGlobalBlacklist,
+  saveGlobalBlacklist,
+  addGlobalBlacklist,
+  removeGlobalBlacklist,
+  getGlobalBlacklist,
+  loadMenuDesign,
+  saveMenuDesign,
+  getMenuDesignWithDefaults,
+  loadRelationships,
+  saveRelationships,
+  // Command limiting functions
+  loadCommandLimits,
+  saveCommandLimits,
+  addCommandLimit,
+  removeCommandLimit,
+  getCommandLimits,
+  checkCommandLimit,
+  parseTimeFrame,
+  formatTimeLeft,
+  // Funções de segurança JSON
+  loadJsonFileSafe,
+  saveJsonFileSafe,
+  validateLevelingUser,
+  validateEconomyUser,
+  validateGroupData,
+  createBackup,
+  // Funções de leveling seguras
+  loadLevelingSafe,
+  saveLevelingSafe,
+  getLevelingUser,
+  DEFAULT_PATENTS,
+  DEFAULT_LEVELING_STRUCTURE,
+  // Funções de normalização de parâmetros
+  normalizeParam,
+  compareParams,
+  findKeyIgnoringAccents,
+  findInArrayIgnoringAccents,
+  resolveParamAlias,
+  matchParam,
+  PARAM_ALIASES,
+  // Sistema de Personalização de Grupo
+  loadGroupCustomization,
+  saveGroupCustomization,
+  isGroupCustomizationEnabled,
+  setGroupCustomizationEnabled,
+  getGroupCustomization,
+  setGroupCustomName,
+  setGroupCustomPhoto,
+  removeGroupCustomName,
+  removeGroupCustomPhoto,
+  // Sistema de Áudio do Menu
+  loadMenuAudio,
+  saveMenuAudio,
+  isMenuAudioEnabled,
+  getMenuAudioPath,
+  setMenuAudio,
+  removeMenuAudio,
+  // Sistema de Ler Mais do Menu
+  loadMenuLerMais,
+  isMenuLerMaisEnabled,
+  setMenuLerMais,
+  getMenuLerMaisText
 };

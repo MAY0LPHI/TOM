@@ -2,16 +2,17 @@
  * Sistema de Download de APK Mod Otimizado
  * Desenvolvido por Hiudy
  * Versão: 2.0.0
+ * Otimizado com HTTP connection pooling
  */
 
-import axios from 'axios';
+import { scrapingClient } from '../../utils/httpClient.js';
 import { DOMParser } from 'linkedom';
 
 // Configurações
 const CONFIG = {
   API: {
     BASE_URL: 'https://apkmodct.com',
-    TIMEOUT: 30000,
+    TIMEOUT: 120000,
     HEADERS: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -142,7 +143,7 @@ class APKClient {
 
   async request(url, attempt = 1) {
     try {
-      const response = (await axios.get(url, {
+      const response = (await scrapingClient.get(url, {
         timeout: CONFIG.API.TIMEOUT,
         headers: CONFIG.API.HEADERS
       })).data;
