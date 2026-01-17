@@ -24,6 +24,7 @@ import cron from 'node-cron';
 import { fileURLToPath } from 'url';
 
 import { PerformanceOptimizer, getPerformanceOptimizer } from './utils/performanceOptimizer.js';
+import { recalcEquipmentBonuses } from './utils/equipment.js';
 import * as ia from './funcs/private/ia.js';
 import * as vipCommandsManager from './utils/vipCommandsManager.js';
 import { notifyOwnerAboutApiKey, isApiKeyError } from './funcs/utils/apiKeyNotifier.js';
@@ -1029,8 +1030,18 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
       
       // Plataformas genéricas (Twitch, Vimeo, Dailymotion, Streamable, Reddit, Bandcamp)
       else {
-        if (downloadModule && typeof downloadModule.download === 'function') {
-          result = await downloadModule.download(url, KeyCog);
+        // Mapeamento de métodos para cada plataforma
+        const methodMap = {
+          'Instagram': 'dl',
+          'Facebook': 'downloadHD',
+          'TikTok': 'dl',
+          'Pinterest': 'dl'
+        };
+        
+        const methodName = methodMap[platformName] || 'download';
+        
+        if (downloadModule && typeof downloadModule[methodName] === 'function') {
+          result = await downloadModule[methodName](url, KeyCog);
           if (result && result.data) {
             const videoUrl = result.data.video || result.data.videoUrl || result.data.url;
             if (videoUrl) {
@@ -6285,6 +6296,8 @@ Entre em contato com o dono do bot:
         }
 
         if (sub === 'forjar' || sub === 'forge') {
+          if (!me.materials) me.materials = {};
+          if (!me.inventory) me.inventory = {};
           // Mostra receitas disponíveis se não especificar item
           const rawCraftKey = (args[0]||'');
           if (!rawCraftKey) {
@@ -7159,6 +7172,9 @@ Entre em contato com o dono do bot:
         if (!me.equipment) me.equipment = { weapon: null, armor: null, helmet: null, boots: null, shield: null, accessory: null };
         
         const eq = me.equipment;
+        // Recalcula os bônus a partir dos itens equipados
+        recalcEquipmentBonuses(me, econ.shop);
+
         let text = `╭━━━⊱ ⚔️ *EQUIPAMENTOS* ⊱━━━╮\n`;
         text += `│ 👤 Aventureiro: *${pushname}*\n`;
         text += `╰━━━━━━━━━━━━━━━━━━━━╯\n\n`;
@@ -8145,6 +8161,8 @@ Entre em contato com o dono do bot:
         me.equipment[slot] = foundItemId;
         me.inventory[foundItemId]--;
         
+        // Recalcula bônus dos equipamentos e salva
+        recalcEquipmentBonuses(me, econ.shop);
         saveEconomy(econ);
         
         let text = `✅ Você equipou *${item.name}*!\n\n`;
@@ -18144,7 +18162,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
 
           reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-          axios.get('https://cog.api.br/api/v1/consulta/', {
+          axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
             params: {
               type: consultaInfo.type,
               dados: cpf
@@ -18270,7 +18288,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
           reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-          axios.get('https://cog.api.br/api/v1/consulta/', {
+          axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
             params: {
               type: consultaInfo.type,
               dados: nome
@@ -18394,7 +18412,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
           reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-          axios.get('https://cog.api.br/api/v1/consulta/', {
+          axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
             params: {
               type: consultaInfo.type,
               dados: telefone
@@ -18455,7 +18473,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
         reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-        axios.get('https://cog.api.br/api/v1/consulta/', {
+        axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
           params: {
             type: consultaInfo.type,
             dados: placa
@@ -18529,7 +18547,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
         reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-        axios.get('https://cog.api.br/api/v1/consulta/', {
+        axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
           params: {
             type: consultaInfo.type,
             dados: chassi
@@ -18605,7 +18623,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
         reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-        axios.get('https://cog.api.br/api/v1/consulta/', {
+        axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
           params: {
             type: consultaInfo.type,
             dados: cnpj
@@ -18679,7 +18697,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
         reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-        axios.get('https://cog.api.br/api/v1/consulta/', {
+        axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
           params: {
             type: consultaInfo.type,
             dados: cep
@@ -18754,7 +18772,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
         reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-        axios.get('https://cog.api.br/api/v1/consulta/', {
+        axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
           params: {
             type: consultaInfo.type,
             dados: email
@@ -18828,7 +18846,7 @@ As consultas de dados estão disponíveis apenas no *plano ilimitado*.
 
         reply(`🔍 *Consultando ${consultaInfo.name}...*\n⏳ Aguarde um momento...`);
 
-        axios.get('https://cog.api.br/api/v1/consulta/', {
+        axios.get('https://consultas.cog.api.br/api/v1/consulta/', {
           params: {
             type: consultaInfo.type,
             dados: titulo
@@ -25809,31 +25827,41 @@ ${prefix}togglecmdvip premium_ia off`);
           
           let statusEmoji = '🟢';
           let statusTexto = 'Excelente';
+          let statusCor = '🟩';
           if (speedConverted > 2) {
             statusEmoji = '🟡';
             statusTexto = 'Bom';
+            statusCor = '🟨';
           }
           if (speedConverted > 5) {
             statusEmoji = '🟠';
             statusTexto = 'Médio';
+            statusCor = '🟧';
           }
           if (speedConverted > 8) {
             statusEmoji = '🔴';
             statusTexto = 'Ruim';
+            statusCor = '🟥';
           }
           
-          const mensagem = `╭━━━⊱ ⚡ *STATUS* ⚡ ⊱━━━╮
-│
-│ 📡 *Conexão*
-│ ├─ ${statusEmoji} Latência: *${speedConverted.toFixed(3)}s*
-│ └─ 📊 Status: *${statusTexto}*
-│
-│ ⏱️ *Tempo Online*
-│ └─ 🟢 Uptime: *${uptimeBot}*
-│
-╰━━━━━━━━━━━━━━━━━━━━━╯`;
+          const bannerUrl = `https://nazu-banner.vercel.app/api/banner?theme=miku&num=${speedConverted.toFixed(3)}`;
           
-          await reply(mensagem);
+          await nazu.sendMessage(from, {
+            image: { url: bannerUrl },
+            caption: `╭━━━⊱ ⚡ *STATUS DA CONEXÃO* ⚡ ⊱━━━╮
+│
+│ 📡 *Informações de Latência*
+│ ├─ ${statusEmoji} Velocidade: *${speedConverted.toFixed(3)}s*
+│ ├─ ${statusCor} Qualidade: *${statusTexto}*
+│ └─ 📊 Status: *${speedConverted <= 2 ? 'Ótima' : speedConverted <= 5 ? 'Boa' : speedConverted <= 8 ? 'Regular' : 'Precisa Melhorar'}*
+│
+│ ⏱️ *Informações do Sistema*
+│ ├─ 🟢 Tempo Online: *${uptimeBot}*
+│ ├─ 📈 Resposta: *${speedConverted <= 1 ? 'Instantânea' : speedConverted <= 3 ? 'Rápida' : 'Lenta'}*
+│ └─ 🌐 Servidor: *Online*
+│
+╰━━━━━━━━━━━━━━━━━━━━━━━━╯`
+          }, { quoted: info });
         } catch (e) {
           console.error("Erro no comando ping:", e);
           await reply("❌ Ocorreu um erro ao processar o comando ping");
