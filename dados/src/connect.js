@@ -1,11 +1,5 @@
 import a, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } from 'whaileys';
 const makeWASocket = a.default;
-import makeWASocketBaileys, {
-    useMultiFileAuthState as useMultiFileAuthStateBaileys,
-    DisconnectReason as DisconnectReasonBaileys,
-    fetchLatestBaileysVersion as fetchLatestBaileysVersionBaileys,
-    makeCacheableSignalKeyStore as makeCacheableSignalKeyStoreBaileys
-} from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import NodeCache from 'node-cache';
 import readline from 'readline';
@@ -370,162 +364,6 @@ const ask = (question) => {
         resolve(answer.trim());
     }));
 };
-
-async function isRegisteredAuth(authDir) {
-    try {
-        const credsPath = path.join(authDir, 'creds.json');
-        const raw = await fs.readFile(credsPath, 'utf-8');
-        const creds = JSON.parse(raw);
-        return Boolean(creds?.registered);
-    } catch {
-        return false;
-    }
-}
-
-async function bootstrapAuthWithBaileys(authDir) {
-    // Usa o Baileys oficial somente para criar a sessão inicial (QR/código).
-    // Após salvar as credenciais, o fluxo normal continua com whaileys.
-    const alreadyRegistered = await isRegisteredAuth(authDir);
-    if (alreadyRegistered) return;
-
-    console.log('🧩 Sessão não encontrada. Gerando autenticação inicial via Baileys...');
-
-    await fs.mkdir(authDir, { recursive: true });
-
-    const maxBootstrapAttempts = 6;
-    let bootstrapAttempt = 0;
-    let phoneNumberForCodeMode = null;
-
-    while (bootstrapAttempt < maxBootstrapAttempts) {
-        bootstrapAttempt++;
-        const { state, saveCreds } = await useMultiFileAuthStateBaileys(authDir);
-        const bootstrapLogger = pino({ level: 'silent' });
-        const { version } = await fetchLatestBaileysVersionBaileys();
-
-        const sock = makeWASocketBaileys({
-            version,
-            emitOwnEvents: true,
-            markOnlineOnConnect: true,
-            connectTimeoutMs: 120000,
-            qrTimeout: 180000,
-            keepAliveIntervalMs: 30_000,
-            browser: ['Windows', 'Edge', '143.0.3650.66'],
-            auth: state,
-            logger: bootstrapLogger
-        });
-
-        const closeSocket = () => {
-            try { sock.end?.(); } catch {}
-            try { sock.ws?.close?.(); } catch {}
-        };
-
-        let registeredSeen = Boolean(state.creds?.registered);
-        sock.ev.on('creds.update', async () => {
-            try {
-                await saveCreds();
-            } finally {
-                registeredSeen = registeredSeen || (await isRegisteredAuth(authDir));
-            }
-        });
-
-        if (codeMode && !registeredSeen) {
-            if (!phoneNumberForCodeMode) {
-                console.log('📱 Insira o número de telefone (com código de país, ex: +14155552671 ou +551199999999): ');
-                let phoneNumber = await ask('--> ');
-                phoneNumber = phoneNumber.replace(/\D/g, '');
-                if (!/^\d{10,15}$/.test(phoneNumber)) {
-                    console.log('⚠️ Número inválido! Use um número válido com código de país (ex: +14155552671 ou +551199999999).');
-                    closeSocket();
-                    process.exit(1);
-                }
-                phoneNumberForCodeMode = phoneNumber;
-            }
-
-            const code = await sock.requestPairingCode(phoneNumberForCodeMode);
-            console.log(`🔑 Código de pareamento: ${code}`);
-            console.log('📲 Envie este código no WhatsApp para autenticar o bot.');
-        }
-
-        const result = await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                cleanup();
-                resolve({ action: 'retry', reason: 'timeout' });
-            }, 5 * 60 * 1000);
-
-            const cleanup = () => {
-                clearTimeout(timeout);
-                try { sock.ev.removeAllListeners('connection.update'); } catch {}
-                try { sock.ev.removeAllListeners('creds.update'); } catch {}
-            };
-
-            sock.ev.on('connection.update', async (update) => {
-                const { connection, lastDisconnect, qr } = update;
-
-                if (qr && !codeMode && !(await isRegisteredAuth(authDir))) {
-                    console.log(`🔗 QR Code gerado para autenticação (Baileys) [tentativa ${bootstrapAttempt}/${maxBootstrapAttempts}]:`);
-                    qrcode.generate(qr, { small: true }, (qrcodeText) => console.log(qrcodeText));
-                    console.log('📱 Escaneie o QR code acima com o WhatsApp para autenticar o bot.');
-                }
-
-                if (connection === 'open') {
-                    cleanup();
-                    resolve({ action: 'success' });
-                    return;
-                }
-
-                if (connection === 'close') {
-                    const status = new Boom(lastDisconnect?.error)?.output?.statusCode;
-                    const disconnectReason = status;
-
-                    // loggedOut/badSession são fatais para bootstrap
-                    if (disconnectReason === DisconnectReasonBaileys.loggedOut || disconnectReason === DisconnectReasonBaileys.badSession || disconnectReason === 401) {
-                        cleanup();
-                        reject(new Error('Baileys: sessão deslogada/inválida durante bootstrap'));
-                        return;
-                    }
-
-                    // Alguns ambientes exigem um restartRequired para concluir a conexão.
-                    if (disconnectReason === DisconnectReasonBaileys.restartRequired) {
-                        cleanup();
-                        resolve({ action: 'restart_required' });
-                        return;
-                    }
-
-                    // Para quedas transitórias (timeout/loss/closed), apenas tenta novamente.
-                    cleanup();
-                    resolve({ action: 'retry', reason: disconnectReason });
-                }
-            });
-        });
-
-        closeSocket();
-
-        if (result?.action === 'success') {
-            console.log('✅ Autenticação inicial concluída. Iniciando bot com whaileys...');
-            return;
-        }
-
-        // Se já vimos creds registrados, mas caiu pedindo restart, re-tenta para obter open.
-        const nowRegistered = registeredSeen || (await isRegisteredAuth(authDir));
-        if (nowRegistered && result?.action === 'restart_required') {
-            // Backoff curto e continua
-            await new Promise(r => setTimeout(r, 1500));
-            continue;
-        }
-
-        // Backoff incremental para evitar loop apertado
-        const delay = Math.min(1500 * bootstrapAttempt, 8000);
-        await new Promise(r => setTimeout(r, delay));
-
-        // Se em algum momento registrou, ainda assim deixa continuar tentando até abrir.
-        if (await isRegisteredAuth(authDir)) {
-            // Faz mais uma tentativa rápida de abrir antes de desistir.
-            continue;
-        }
-    }
-
-    throw new Error('Falha ao concluir autenticação inicial via Baileys (excedeu tentativas)');
-}
 
 async function clearAuthDir(dirToRemove = AUTH_DIR) {
     // Mantém compatibilidade com múltiplas instâncias (ex: sub-bots) e com versões antigas do Node.
@@ -1188,7 +1026,7 @@ async function createBotSocket(authDir) {
             signalRepository
         } = await useMultiFileAuthState(authDir, makeCacheableSignalKeyStore);
         
-        // Busca a versão mais recente do Baileys
+        // Busca a versão mais recente do WhatsApp
         const { version } = await fetchLatestBaileysVersion();
         console.log(`📱 Usando versão do WhatsApp: ${version.join('.')}`);
         
@@ -1419,30 +1257,6 @@ async function createBotSocket(authDir) {
                 attachMessagesListener();
                 startCacheCleanup(); // Inicia o sistema de limpeza de cache
                 
-                // Envia mensagem de boas-vindas para o dono
-                try {
-                    const msgBotOnConfig = loadMsgBotOn();
-                    
-                    if (msgBotOnConfig.enabled) {
-                        // Aguarda 3 segundos para garantir que o bot está totalmente conectado
-                        setTimeout(async () => {
-                            try {
-                                const ownerJid = buildUserId(numerodono, config);
-                                await NazunaSock.sendMessage(ownerJid, { 
-                                    text: msgBotOnConfig.message 
-                                });
-                                console.log('✅ Mensagem de inicialização enviada para o dono');
-                            } catch (sendError) {
-                                console.error('❌ Erro ao enviar mensagem de inicialização:', sendError.message);
-                            }
-                        }, 3000);
-                    } else {
-                        console.log('ℹ️ Mensagem de inicialização desativada');
-                    }
-                } catch (msgError) {
-                    console.error('❌ Erro ao processar mensagem de inicialização:', msgError.message);
-                }
-                
                 // Inicializa sub-bots automaticamente
                 try {
                     const subBotManagerModule = await import('./utils/subBotManager.js');
@@ -1561,11 +1375,6 @@ async function startNazu() {
         reconnectAttempts = 0; // Reset contador ao conectar com sucesso
         forbidden403Attempts = 0; // Reset contador de erro 403
         console.log('🚀 Iniciando Nazuna...');
-
-        // Se ainda não existe autenticação salva, gera a sessão via Baileys (somente bootstrap).
-        if (!(await isRegisteredAuth(AUTH_DIR))) {
-            await bootstrapAuthWithBaileys(AUTH_DIR);
-        }
 
         await createBotSocket(AUTH_DIR);
         isReconnecting = false; // Conexão estabelecida com sucesso

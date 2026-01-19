@@ -149,6 +149,10 @@ import {
   loadMenuDesign,
   saveMenuDesign,
   getMenuDesignWithDefaults,
+  setSupportMode,
+  findSupportTicketById,
+  createSupportTicket,
+  acceptSupportTicket,
   loadCommandLimits,
   saveCommandLimits,
   addCommandLimit,
@@ -669,11 +673,12 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
 
   function isValidApiKey(key) {
     if (!key || typeof key !== 'string') return false;
-    if (key.trim() === '') return false;
-    if (key.length < 10) return false;
+    const trimmed = key.trim();
+    if (trimmed === '') return false;
+    if (trimmed.length < 10) return false;
     
-    const validChars = /^[a-zA-Z0-9\-_]+$/;
-    return validChars.test(key.trim());
+    // Permite qualquer caractere não-espaço (evita invalidar keys com pontos, etc.)
+    return /^\S+$/.test(trimmed);
   }
 
   if (!KeyCog || KeyCog.trim() === '') {
@@ -1736,6 +1741,29 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
       
       return userWhitelist.antis.includes(antiType);
     };
+    
+    // Helpers para mutar usuários (suporte a LID/JID)
+    const isUserInMap = (map, userId) => {
+      if (!map || !userId) return false;
+      if (map[userId]) return true;
+      const keys = Object.keys(map);
+      return keys.some(key => idsMatch(key, userId));
+    };
+    const removeUserFromMap = (map, userId) => {
+      if (!map || !userId) return false;
+      let removed = false;
+      if (map[userId]) {
+        delete map[userId];
+        removed = true;
+      }
+      for (const key of Object.keys(map)) {
+        if (idsMatch(key, userId)) {
+          delete map[key];
+          removed = true;
+        }
+      }
+      return removed;
+    };
     const groupPrefix = groupData.customPrefix || prefixo;
     var isCmd = body.trim().startsWith(groupPrefix);
     
@@ -1858,7 +1886,9 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     if (!isGroup) {
       // Exceção para comandos de transmissão que devem funcionar no PV
       const tm2Commands = ['inscrevertm', 'inscrevertm2', 'desinscrever', 'desinscrevertm', 'cancelartm'];
-      const isTm2Command = tm2Commands.some(cmd => command === cmd);
+      const supportAdminCommands = ['ticketaceitar', 'aceitarticket', 'suporteaceitar', 'ticket.aceitar'];
+      const isSupportAdminCommand = supportAdminCommands.some(cmd => command === cmd);
+      const isTm2Command = tm2Commands.some(cmd => command === cmd) || isSupportAdminCommand;
       
       if (antipvData.mode === 'antipv' && !isOwner && !isPremium && !isTm2Command) {
         return;
@@ -1991,6 +2021,7 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     }
     const isModoBn = groupData.modobrincadeira;
     const isOnlyAdmin = groupData.soadm;
+    const soadmBypassCommands = ['suporte', 'ticketsuporte', 'suporteticket'];
     
     // Se modo soadm ativo e não é admin, ignorar aliases silenciosamente
     if (isGroup && isOnlyAdmin && !isGroupAdmin && !isOwner && matchedAlias) {
@@ -1998,8 +2029,8 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     }
     
     const isAntiPorn = groupData.antiporn;
-    const isMuted = groupData.mutedUsers?.[sender];
-    const isMuted2 = groupData.mutedUsers2?.[sender];
+    const isMuted = isUserInMap(groupData.mutedUsers, sender);
+    const isMuted2 = isUserInMap(groupData.mutedUsers2, sender);
     const isAntiLinkGp = groupData.antilinkgp;
     const isAntiLinkCanal = groupData.antilinkcanal;
     const isAntiLinkSoft = groupData.antilinksoft;
@@ -2079,7 +2110,7 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
         }
       }
     }
-    if (isGroup && isCmd && isOnlyAdmin && !isGroupAdmin) {
+    if (isGroup && isCmd && isOnlyAdmin && !isGroupAdmin && !soadmBypassCommands.includes(command)) {
       return;
     }
     if (isGroup && info.message.protocolMessage && info.message.protocolMessage.type === 0 && isAntiDel) {
@@ -2238,7 +2269,7 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
         } else {
           await reply("⚠️ Não posso remover o usuário porque não sou administrador.");
         }
-        delete groupData.mutedUsers[sender];
+        removeUserFromMap(groupData.mutedUsers, sender);
         writeJsonFile(groupFile, groupData);
         // Otimização: Invalida cache quando groupData é salvo
         if (isGroup) {
@@ -3413,7 +3444,11 @@ Código: *${roleCode}*`,
       if (urlMatch && urlMatch.length > 0) {
         // Processa apenas o primeiro link encontrado
         try {
-          await handleAutoDownload(nazu, from, urlMatch[0], info);
+          handleAutoDownload(nazu, from, urlMatch[0], info)
+            .then(() => null)
+            .catch((e) => {
+              console.error('Erro no autodl:', e);
+            });
         } catch (e) {
           console.error('Erro no autodl:', e);
         }
@@ -3943,7 +3978,6 @@ Código: *${roleCode}*`,
                               info.message?.documentMessage ? 'documento' : null;
         
         // Detectar tipo de mídia marcada
-        console.log('🤖 [DEBUG] quotedMessageContent:', quotedMessageContent ? Object.keys(quotedMessageContent) : 'null');
         // Checar também pttMessage (mensagem de voz) que pode vir separado
         const tipoMidiaMarcada = quotedMessageContent?.imageMessage ? 'imagem' : 
                                  quotedMessageContent?.videoMessage ? 'video' : 
@@ -3951,7 +3985,6 @@ Código: *${roleCode}*`,
                                  quotedMessageContent?.pttMessage ? 'audio' :
                                  quotedMessageContent?.stickerMessage ? 'sticker' : 
                                  quotedMessageContent?.documentMessage ? 'documento' : null;
-        console.log('🤖 [DEBUG] tipoMidiaMarcada:', tipoMidiaMarcada);
         
         // Detectar menções na mensagem
         const mencoesNaMensagem = info.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
@@ -3961,8 +3994,6 @@ Código: *${roleCode}*`,
         const botJid = nazu.user?.id ? nazu.user.id.split(':')[0] : null;
         const botIdentifiers = [_botShort, botLid, botJid, botNumber].filter(Boolean);
         
-        console.log('🤖 [DEBUG] Bot identifiers:', botIdentifiers);
-        console.log('🤖 [DEBUG] Menções originais:', mencoesNaMensagem);
         
         // Filtrar menção do bot das menções (usando todos os identificadores possíveis)
         const mencoesFiltradas = mencoesNaMensagem.filter(m => {
@@ -3973,7 +4004,6 @@ Código: *${roleCode}*`,
           });
         });
         
-        console.log('🤖 [DEBUG] Menções filtradas:', mencoesFiltradas);
         const primeiraMencao = mencoesFiltradas.length > 0 ? mencoesFiltradas[0] : null;
         
         const jSoNzIn = {
@@ -4028,16 +4058,6 @@ Código: *${roleCode}*`,
           return;
         }
         
-        console.log('🤖 Processando mensagem de assistente...');
-        console.log('🤖 [DEBUG] jSoNzIn:', JSON.stringify({
-          tem_midia: jSoNzIn.tem_midia,
-          tipo_midia: jSoNzIn.tipo_midia,
-          marcou_mensagem: jSoNzIn.marcou_mensagem,
-          tem_midia_marcada: jSoNzIn.tem_midia_marcada,
-          tipo_midia_marcada: jSoNzIn.tipo_midia_marcada,
-          tem_mencao: jSoNzIn.tem_mencao,
-          primeira_mencao: jSoNzIn.primeira_mencao
-        }));
         
         // Add null check for ia object
         if (!ia || typeof ia.makeAssistentRequest !== 'function') {
@@ -4056,8 +4076,6 @@ Código: *${roleCode}*`,
             return;
           }
           
-          console.log('✅ Assistente processado com sucesso');
-          console.log(`[${personality}] Resposta recebida:`, JSON.stringify(respAssist).substring(0, 500));
         
           if (respAssist.apiKeyInvalid) {
             reply(respAssist.message || '🤖 Sistema de IA temporariamente indisponível. Tente novamente mais tarde.');
@@ -25848,7 +25866,7 @@ ${prefix}togglecmdvip premium_ia off`);
           
           await nazu.sendMessage(from, {
             image: { url: bannerUrl },
-            caption: `╭━━━⊱ ⚡ *STATUS DA CONEXÃO* ⚡ ⊱━━━╮
+            caption: `╭⊱ ⚡ *STATUS DA CONEXÃO* ⚡ ⊱╮
 │
 │ 📡 *Informações de Latência*
 │ ├─ ${statusEmoji} Velocidade: *${speedConverted.toFixed(3)}s*
@@ -28861,6 +28879,120 @@ Exemplos:
           reply("Ocorreu um erro 💔");
         }
         break;
+      case 'suporte':
+      case 'ticketsuporte':
+      case 'suporteticket':
+        try {
+          if (!isGroup) return reply('Use este comando no grupo para abrir um ticket.');
+
+          const action = (args[0] || '').toLowerCase();
+          const enableActions = ['on', 'ativar', 'ligar', 'enable'];
+          const disableActions = ['off', 'desativar', 'desligar', 'disable'];
+
+          if (enableActions.includes(action)) {
+            if (!isGroupAdmin) return reply('Você precisa ser administrador 💔');
+            setSupportMode(from, true);
+            return reply('✅ *Modo suporte ativado!* Agora membros podem solicitar tickets.');
+          }
+
+          if (disableActions.includes(action)) {
+            if (!isGroupAdmin) return reply('Você precisa ser administrador 💔');
+            setSupportMode(from, false);
+            return reply('⚠️ *Modo suporte desativado!*');
+          }
+
+          const reason = q?.trim() || '';
+          const createResult = createSupportTicket({
+            groupId: from,
+            groupName: groupName || null,
+            userId: sender,
+            userName: getUserName(sender),
+            message: reason
+          });
+
+          if (!createResult.success) {
+            if (createResult.existingTicket?.id) {
+              return reply(`⚠️ Você já tem um ticket pendente: *${createResult.existingTicket.id}*`);
+            }
+            return reply(`⚠️ ${createResult.message || 'Não foi possível criar o ticket.'}`);
+          }
+
+          const { ticket, ahead } = createResult;
+          const aheadText = ahead > 0 ? `Há ${ahead} ticket(s) na fila na sua frente.` : 'Você é o próximo da fila.';
+          await reply(`✅ Ticket criado! ID: *${ticket.id}*\n${aheadText}\nUm admin vai falar com você no privado.`);
+
+          const userMention = `@${String(ticket.userId).split('@')[0]}`;
+          const adminMessage =
+            `🧾 *Novo Ticket de Suporte*\n\n` +
+            `ID: *${ticket.id}*\n` +
+            `Grupo: ${groupName || from}\n` +
+            `Usuário: ${userMention}\n` +
+            (reason ? `Mensagem: ${reason}\n` : '') +
+            `Fila: ${ahead} na frente\n\n` +
+            `Para aceitar, envie no meu PV:\n${prefix}ticketaceitar ${ticket.id}`;
+
+          const adminsToNotify = Array.isArray(groupAdmins) ? groupAdmins : [];
+          for (const adminId of adminsToNotify) {
+            await nazu.sendMessage(adminId, { text: adminMessage, mentions: [ticket.userId] }).catch(err => {
+              console.error(`Erro ao notificar admin ${adminId}:`, err.message || err);
+            });
+          }
+        } catch (e) {
+          console.error(e);
+          reply('Ocorreu um erro 💔');
+        }
+        break;
+      case 'ticketaceitar':
+      case 'aceitarticket':
+      case 'suporteaceitar':
+      case 'ticket.aceitar':
+        try {
+          if (isGroup) return reply('Use este comando no meu privado.');
+          if (!q) return reply('Informe o ID do ticket.');
+
+          const ticketId = q.trim().split(/\s+/)[0];
+          const found = findSupportTicketById(ticketId);
+          if (!found || !found.ticket) return reply('❌ Ticket não encontrado.');
+
+          const ticket = found.ticket;
+          const groupMeta = await getCachedGroupMetadata(ticket.groupId).catch(() => null);
+          if (!groupMeta || !groupMeta.participants) {
+            return reply('❌ Não consegui validar o grupo deste ticket.');
+          }
+
+          const rawAdmins = groupMeta.participants
+            .filter(p => p.admin === 'admin' || p.admin === 'superadmin' || p.admin === true)
+            .map(p => p.lid || p.id)
+            .filter(Boolean);
+
+          const adminIds = await convertIdsToLid(nazu, rawAdmins);
+          const isTicketAdmin = idInArray(sender, adminIds) || isOwner || isSubOwner;
+          if (!isTicketAdmin) return reply('❌ Apenas admins do grupo podem aceitar este ticket.');
+
+          const acceptResult = acceptSupportTicket(ticketId, sender);
+          if (!acceptResult.success) {
+            if (acceptResult.alreadyAccepted && acceptResult.ticket?.acceptedBy) {
+              const acceptedBy = acceptResult.ticket.acceptedBy;
+              const acceptedByMention = `@${String(acceptedBy).split('@')[0]}`;
+              return reply(
+                `⚠️ Ticket já aceito por ${acceptedByMention}.`,
+                { mentions: [acceptedBy] }
+              );
+            }
+            return reply(`⚠️ ${acceptResult.message || 'Não foi possível aceitar o ticket.'}`);
+          }
+
+          const acceptedMention = `@${String(ticket.userId).split('@')[0]}`;
+          return reply(
+            `✅ Ticket *${ticketId}* aceito!\n` +
+            `Entre em contato manualmente com ${acceptedMention}.`,
+            { mentions: [ticket.userId] }
+          );
+        } catch (e) {
+          console.error(e);
+          reply('Ocorreu um erro 💔');
+        }
+        break;
       case 'soadm':
       case 'onlyadm':
       case 'soadmin':
@@ -29168,8 +29300,11 @@ Exemplos:
           };
           
           groupData.mutedUsers = groupData.mutedUsers || {};
-          
-          groupData.mutedUsers[menc_os2] = true;
+          const targetId = await normalizeUserId(nazu, menc_os2);
+          groupData.mutedUsers[targetId] = true;
+          if (targetId !== menc_os2) {
+            groupData.mutedUsers[menc_os2] = true;
+          }
           fs.writeFileSync(groupFilePath, JSON.stringify(groupData));
           await nazu.sendMessage(from, {
             text: `✅ @${getUserName(menc_os2)} foi mutado. Se enviar mensagens, será banido.`,
@@ -29195,8 +29330,9 @@ Exemplos:
           };
           
           groupData.mutedUsers = groupData.mutedUsers || {};
-          if (groupData.mutedUsers[menc_os2]) {
-            delete groupData.mutedUsers[menc_os2];
+          const targetId = await normalizeUserId(nazu, menc_os2);
+          const removed = removeUserFromMap(groupData.mutedUsers, targetId) || removeUserFromMap(groupData.mutedUsers, menc_os2);
+          if (removed) {
             fs.writeFileSync(groupFilePath, JSON.stringify(groupData));
             await nazu.sendMessage(from, {
               text: `✅ @${getUserName(menc_os2)} foi desmutado e pode enviar mensagens novamente.`,
@@ -29224,8 +29360,11 @@ Exemplos:
           };
           
           groupData.mutedUsers2 = groupData.mutedUsers2 || {};
-          
-          groupData.mutedUsers2[menc_os2] = true;
+          const targetId = await normalizeUserId(nazu, menc_os2);
+          groupData.mutedUsers2[targetId] = true;
+          if (targetId !== menc_os2) {
+            groupData.mutedUsers2[menc_os2] = true;
+          }
           fs.writeFileSync(groupFilePath, JSON.stringify(groupData));
           await nazu.sendMessage(from, {
             text: `✅ @${getUserName(menc_os2)} foi mutado. Suas mensagens serão apagadas automaticamente.`,
@@ -29251,8 +29390,9 @@ Exemplos:
           };
           
           groupData.mutedUsers2 = groupData.mutedUsers2 || {};
-          if (groupData.mutedUsers2[menc_os2]) {
-            delete groupData.mutedUsers2[menc_os2];
+          const targetId = await normalizeUserId(nazu, menc_os2);
+          const removed = removeUserFromMap(groupData.mutedUsers2, targetId) || removeUserFromMap(groupData.mutedUsers2, menc_os2);
+          if (removed) {
             fs.writeFileSync(groupFilePath, JSON.stringify(groupData));
             await nazu.sendMessage(from, {
               text: `✅ @${getUserName(menc_os2)} foi desmutado e pode enviar mensagens novamente.`,
