@@ -12,6 +12,7 @@ import {
   LEVELING_FILE,
   CUSTOM_AUTORESPONSES_FILE,
   DIVULGACAO_FILE,
+  DONO_DIVULGACAO_FILE,
   NO_PREFIX_COMMANDS_FILE,
   COMMAND_ALIASES_FILE,
   GLOBAL_BLACKLIST_FILE,
@@ -96,6 +97,21 @@ ensureJsonFileExists(CUSTOM_COMMANDS_FILE, {
 ensureJsonFileExists(GLOBAL_BLACKLIST_FILE, {
   users: {},
   groups: {}
+});
+ensureJsonFileExists(DONO_DIVULGACAO_FILE, {
+  groups: [],
+  message: '',
+  schedule: {
+    enabled: false,
+    time: null,
+    lastRun: null
+  },
+  stats: {
+    totalSent: 0,
+    lastManual: null,
+    lastAuto: null
+  },
+  createdAt: new Date().toISOString()
 });
 ensureJsonFileExists(MENU_DESIGN_FILE, {
   header: `╭┈⊰ 🌸 『 *{botName}* 』\n┊Olá, {userName}!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
@@ -301,8 +317,8 @@ try {
   console.error('Erro ao ler config.json para msgboton:', e.message);
 }
 
-// Se o número do dono for 553399285117, a mensagem vem desativada por padrão
-const defaultMsgBotOnEnabled = configForMsgBotOn.numerodono === '553399285117' ? false : true;
+// Se o número do dono for 553391967445, a mensagem vem desativada por padrão
+const defaultMsgBotOnEnabled = configForMsgBotOn.numerodono === '553391967445' ? false : true;
 
 ensureJsonFileExists(MSGBOTON_FILE, { 
   enabled: defaultMsgBotOnEnabled,
@@ -480,7 +496,7 @@ const loadMsgBotOn = () => {
     console.error('Erro ao ler config.json em loadMsgBotOn:', e.message);
   }
   
-  const defaultEnabled = currentOwner === '553399285117' ? false : true;
+  const defaultEnabled = currentOwner === '553391967445' ? false : true;
   
   const data = loadJsonFile(MSGBOTON_FILE, { 
     enabled: defaultEnabled,
@@ -838,6 +854,35 @@ const saveDivulgacao = (data) => {
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar divulgação.json:', error);
+    return false;
+  }
+};
+
+const loadDonoDivulgacao = () => {
+  return loadJsonFile(DONO_DIVULGACAO_FILE, {
+    groups: [],
+    message: '',
+    schedule: {
+      enabled: false,
+      time: null,
+      lastRun: null
+    },
+    stats: {
+      totalSent: 0,
+      lastManual: null,
+      lastAuto: null
+    },
+    createdAt: new Date().toISOString()
+  });
+};
+
+const saveDonoDivulgacao = (data) => {
+  try {
+    ensureDirectoryExists(DONO_DIR);
+    fs.writeFileSync(DONO_DIVULGACAO_FILE, JSON.stringify(data, null, 2));
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao salvar divulgacao_dono.json:', error);
     return false;
   }
 };
@@ -2956,153 +3001,6 @@ const formatTimeLeft = (milliseconds) => {
   }
 };
 
-/*
-// ANTIGO EXPORT - COMENTADO PARA EVITAR DUPLICAÇÃO
-export {
-  runDatabaseSelfTest,
-  loadMsgPrefix,
-  saveMsgPrefix,
-  loadMsgBotOn,
-  saveMsgBotOn,
-  loadCmdNotFoundConfig,
-  saveCmdNotFoundConfig,
-  validateMessageTemplate,
-  formatMessageWithFallback,
-  loadCustomReacts,
-  saveCustomReacts,
-  loadReminders,
-  saveReminders,
-  addCustomReact,
-  deleteCustomReact,
-  loadDivulgacao,
-  saveDivulgacao,
-  loadSubdonos,
-  saveSubdonos,
-  isSubdono,
-  addSubdono,
-  removeSubdono,
-  getSubdonos,
-  loadRentalData,
-  saveRentalData,
-  isRentalModeActive,
-  setRentalMode,
-  getGroupRentalStatus,
-  setGroupRental,
-  loadActivationCodes,
-  saveActivationCodes,
-  generateActivationCode,
-  validateActivationCode,
-  useActivationCode,
-  extendGroupRental,
-  isModoLiteActive,
-  loadParceriasData,
-  saveParceriasData,
-  calculateNextLevelXp,
-  getPatent,
-  loadEconomy,
-  saveEconomy,
-  getEcoUser,
-  createDefaultEcoUser,
-  migrateAndValidateEcoUser,
-  migrateAndValidatePet,
-  diagnosticDatabase,
-  parseAmount,
-  fmt,
-  timeLeft,
-  applyShopBonuses,
-  PICKAXE_TIER_MULT,
-  PICKAXE_TIER_ORDER,
-  SHOP_ITEMS,
-  getActivePickaxe,
-  ensureEconomyDefaults,
-  giveMaterial,
-  generateDailyChallenge,
-  ensureUserChallenge,
-  updateChallenge,
-  isChallengeCompleted,
-  updateQuestProgress,
-  SKILL_LIST,
-  ensureUserSkills,
-  skillXpForNext,
-  addSkillXP,
-  getSkillBonus,
-  endOfWeekTimestamp,
-  endOfMonthTimestamp,
-  generateWeeklyChallenge,
-  generateMonthlyChallenge,
-  ensureUserPeriodChallenges,
-  updatePeriodChallenge,
-  isPeriodCompleted,
-  checkLevelUp,
-  checkLevelDown,
-  loadCustomAutoResponses,
-  saveCustomAutoResponses,
-  loadGroupAutoResponses,
-  saveGroupAutoResponses,
-  addAutoResponse,
-  deleteAutoResponse,
-  processAutoResponse,
-  sendAutoResponse,
-  loadCustomCommands,
-  saveCustomCommands,
-  removeCustomCommand,
-  findCustomCommand,
-  loadNoPrefixCommands,
-  saveNoPrefixCommands,
-  loadCommandAliases,
-  saveCommandAliases,
-  loadGlobalBlacklist,
-  saveGlobalBlacklist,
-  addGlobalBlacklist,
-  removeGlobalBlacklist,
-  getGlobalBlacklist,
-  loadMenuDesign,
-  saveMenuDesign,
-  getMenuDesignWithDefaults,
-  loadRelationships,
-  saveRelationships,
-  loadSupportTicketsData,
-  saveSupportTicketsData,
-  setSupportMode,
-  findSupportTicketById,
-  createSupportTicket,
-  acceptSupportTicket,
-  // Command limiting functions
-  loadCommandLimits,
-  saveCommandLimits,
-  addCommandLimit,
-  removeCommandLimit,
-  getCommandLimits,
-  checkCommandLimit,
-  parseTimeFrame,
-  formatTimeLeft,
-  // Funções de segurança JSON
-  loadJsonFileSafe,
-  saveJsonFileSafe,
-  validateLevelingUser,
-  validateEconomyUser,
-  validateGroupData,
-  createBackup,
-  // Funções de leveling seguras
-  loadLevelingSafe,
-  saveLevelingSafe,
-  getLevelingUser,
-  DEFAULT_PATENTS,
-  DEFAULT_LEVELING_STRUCTURE,
-  // Funções de normalização de parâmetros
-  normalizeParam,
-  compareParams,
-  findKeyIgnoringAccents,
-  findInArrayIgnoringAccents,
-  resolveParamAlias,
-  matchParam,
-  PARAM_ALIASES
-};
-
-*/
-
-// ============== SISTEMA DE PERSONALIZAÇÃO DE GRUPO ==============
-
 const loadGroupCustomization = () => {
   ensureJsonFileExists(GROUP_CUSTOMIZATION_FILE, { enabled: false, groups: {} });
   return loadJsonFile(GROUP_CUSTOMIZATION_FILE);
@@ -3277,6 +3175,8 @@ export {
   deleteCustomReact,
   loadDivulgacao,
   saveDivulgacao,
+  loadDonoDivulgacao,
+  saveDonoDivulgacao,
   loadSubdonos,
   saveSubdonos,
   isSubdono,

@@ -69,6 +69,8 @@ import {
   deleteCustomReact,
   loadDivulgacao,
   saveDivulgacao,
+  loadDonoDivulgacao,
+  saveDonoDivulgacao,
   loadSubdonos,
   saveSubdonos,
   isSubdono,
@@ -640,6 +642,79 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
   const debugLog = (msg, data = null) => {
     if (config?.debug) {
       console.log(`[DEBUG] ${msg}`, data || '');
+    }
+  };
+
+  const normalizeMessageTimestamp = (timestamp) => {
+    if (!timestamp) return null;
+    if (typeof timestamp === 'number') return timestamp;
+    if (typeof timestamp === 'string') {
+      const parsed = Number(timestamp);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    if (typeof timestamp === 'object') {
+      if (typeof timestamp.toNumber === 'function') return timestamp.toNumber();
+      if (typeof timestamp.low === 'number') return timestamp.low;
+    }
+    return null;
+  };
+
+  const getLastMessageInChat = (jid) => {
+    if (!messagesCache || messagesCache.size === 0) return null;
+
+    let lastMsg = null;
+    let lastTimestamp = 0;
+
+    for (const cachedMsg of messagesCache.values()) {
+      if (!cachedMsg?.key?.remoteJid || cachedMsg.key.remoteJid !== jid) continue;
+      const ts = normalizeMessageTimestamp(cachedMsg.messageTimestamp);
+      if (!ts) continue;
+
+      if (!lastMsg || ts > lastTimestamp) {
+        lastMsg = cachedMsg;
+        lastTimestamp = ts;
+      }
+    }
+
+    if (!lastMsg?.key || !lastTimestamp) return null;
+    return {
+      key: lastMsg.key,
+      messageTimestamp: lastTimestamp
+    };
+  };
+
+  const deleteChatByLastMessage = async (jid) => {
+    if (!nazu?.chatModify) return false;
+
+    const lastMsgInChat = getLastMessageInChat(jid);
+    if (lastMsgInChat?.key && lastMsgInChat?.messageTimestamp) {
+      await nazu.chatModify({
+        delete: true,
+        lastMessages: [
+          {
+            key: lastMsgInChat.key,
+            messageTimestamp: lastMsgInChat.messageTimestamp
+          }
+        ]
+      }, jid);
+      return true;
+    }
+
+    await nazu.chatModify({ delete: true }, jid);
+    return true;
+  };
+
+  const clearChatHistorySafe = async (jid) => {
+    if (!nazu?.chatModify) return false;
+    try {
+      await nazu.chatModify({ clear: 'all' }, jid);
+      return true;
+    } catch (e) {
+      if (typeof e?.message === 'string' && e.message.toLowerCase().includes('not supported')) {
+        await deleteChatByLastMessage(jid);
+        return true;
+      }
+      throw e;
     }
   };
   
@@ -2021,7 +2096,7 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     }
     const isModoBn = groupData.modobrincadeira;
     const isOnlyAdmin = groupData.soadm;
-    const soadmBypassCommands = ['suporte', 'ticketsuporte', 'suporteticket'];
+    const soadmBypassCommands = ['suporte', 'ticketsuporte', 'suporteticket', 'ticket'];
     
     // Se modo soadm ativo e não é admin, ignorar aliases silenciosamente
     if (isGroup && isOnlyAdmin && !isGroupAdmin && !isOwner && matchedAlias) {
@@ -3186,12 +3261,136 @@ Código: *${roleCode}*`,
         
         // Carregar mensagens existentes e criar cron jobs
         loadAllAutoMessages(nazuInstance);
+
+        // Recarregar periodicamente para garantir que os agendamentos permaneçam ativos
+        if (!global.autoMensagensRefreshTimer) {
+          global.autoMensagensRefreshTimer = setInterval(() => {
+            try {
+              loadAllAutoMessages(nazuInstance);
+            } catch (e) {
+              console.error('[AutoMsg] refresh error:', e);
+            }
+          }, 6 * 60 * 60 * 1000); // a cada 6 horas
+        }
       } catch (e) {
         console.error('[AutoMsg] startAutoMensagensWorker error:', e);
       }
     };
     
     startAutoMensagensWorker(nazu);
+
+    // ============== DIVULGAÇÃO DO DONO (NOVO SISTEMA) ==============
+    let donoDivulgacaoWorkerStarted = global.donoDivulgacaoWorkerStarted || false;
+    let donoDivulgacaoCronJob = global.donoDivulgacaoCronJob || null;
+
+    const unscheduleDonoDivulgacaoJob = () => {
+      if (donoDivulgacaoCronJob && typeof donoDivulgacaoCronJob.stop === 'function') {
+        try { donoDivulgacaoCronJob.stop(); } catch (e) {}
+      }
+      donoDivulgacaoCronJob = null;
+      global.donoDivulgacaoCronJob = null;
+    };
+
+    const runDonoDivulgacaoSend = async (nazuInstance, messageText, source = 'manual') => {
+      const config = loadDonoDivulgacao();
+      const groups = Array.isArray(config.groups) ? config.groups : [];
+      const text = (messageText || config.message || '').trim();
+
+      if (!text) {
+        return { success: false, message: '❌ Nenhuma mensagem configurada para divulgar.' };
+      }
+      if (groups.length === 0) {
+        return { success: false, message: '❌ Nenhum grupo registrado para divulgação.' };
+      }
+
+      let sent = 0;
+      let failed = 0;
+
+      for (const groupId of groups) {
+        if (!isGroupId(groupId)) {
+          failed++;
+          continue;
+        }
+        try {
+          await nazuInstance.sendMessage(groupId, { text });
+          sent++;
+        } catch (e) {
+          failed++;
+        }
+      }
+
+      config.stats = config.stats || { totalSent: 0, lastManual: null, lastAuto: null };
+      config.stats.totalSent = (config.stats.totalSent || 0) + sent;
+      if (source === 'auto') {
+        config.stats.lastAuto = new Date().toISOString();
+      } else {
+        config.stats.lastManual = new Date().toISOString();
+      }
+
+      saveDonoDivulgacao(config);
+
+      return { success: true, sent, failed };
+    };
+
+    const scheduleDonoDivulgacaoJob = (timeStr, nazuInstance) => {
+      const normalized = normalizeScheduleTime(timeStr);
+      if (!normalized) return false;
+      const [hh, mm] = normalized.split(':');
+      if (typeof hh === 'undefined' || typeof mm === 'undefined') return false;
+
+      unscheduleDonoDivulgacaoJob();
+
+      const cronExpr = `${parseInt(mm, 10)} ${parseInt(hh, 10)} * * *`;
+      try {
+        const task = cron.schedule(cronExpr, async () => {
+          try {
+            const config = loadDonoDivulgacao();
+            const schedule = config.schedule || {};
+
+            if (!schedule.enabled || !schedule.time) return;
+            const targetTime = normalizeScheduleTime(schedule.time);
+            if (!targetTime) return;
+
+            const today = getTodayStr();
+            if (hasRunForScheduleToday(schedule.lastRun, today, targetTime)) return;
+
+            const result = await runDonoDivulgacaoSend(nazuInstance, null, 'auto');
+            if (result.success) {
+              schedule.lastRun = { date: today, time: targetTime };
+              config.schedule = schedule;
+              saveDonoDivulgacao(config);
+            }
+          } catch (e) {
+            console.error('[DivDono] Erro no agendamento:', e);
+          }
+        }, { timezone: 'America/Sao_Paulo' });
+
+        task.start();
+        donoDivulgacaoCronJob = task;
+        global.donoDivulgacaoCronJob = task;
+        return true;
+      } catch (e) {
+        console.error('[DivDono] Falha ao agendar job', cronExpr, e);
+        return false;
+      }
+    };
+
+    const startDonoDivulgacaoWorker = (nazuInstance) => {
+      try {
+        if (donoDivulgacaoWorkerStarted) return;
+        donoDivulgacaoWorkerStarted = true;
+        global.donoDivulgacaoWorkerStarted = true;
+
+        const config = loadDonoDivulgacao();
+        if (config.schedule?.enabled && config.schedule?.time) {
+          scheduleDonoDivulgacaoJob(config.schedule.time, nazuInstance);
+        }
+      } catch (e) {
+        console.error('[DivDono] Erro ao iniciar worker:', e);
+      }
+    };
+
+    startDonoDivulgacaoWorker(nazu);
 
     const getFileBuffer = async (mediakey, mediaType, options = {}) => {
       try {
@@ -3551,7 +3750,7 @@ Código: *${roleCode}*`,
     }
 
     // Verifica se o usuário é um parceiro registrado
-    const isParceiro = parceriasData && parceriasData.partners && parceriasData.partners[sender];
+    const isParceiro = !!(parceriasData?.active && parceriasData?.partners?.[sender]);
 
     if (isGroup && isAntiLinkGp && !isGroupAdmin && !isParceiro) {
       if (!isUserWhitelisted(sender, 'antilinkgp')) {
@@ -3674,7 +3873,7 @@ Código: *${roleCode}*`,
       }
     }
     // AntiLink Hard - Remove qualquer link compartilhado
-    if (isGroup && groupData.antilinkhard && parceriasData.active && !isGroupAdmin && !isOwner && !isParceiro) {
+    if (isGroup && groupData.antilinkhard && !isGroupAdmin && !isOwner && !isParceiro) {
       const linkRegex = /(https?:\/\/|www\.)[^\s]+|([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[^\s]*)?/gi;
       const hasLink = linkRegex.test(budy2);
       
@@ -4053,7 +4252,7 @@ Código: *${roleCode}*`,
         }
         if (!KeyCog) {
           nazu.sendMessage(nmrdn, {
-            text: `🤖 *Sistema de IA desativado*\n\n😅 O sistema de IA está desativado porque a API key não foi configurada.\n\n⚙️ Para configurar, use o comando: ${prefix}apikey SUA_API_KEY\n📞 Suporte: wa.me/553399285117`
+            text: `🤖 *Sistema de IA desativado*\n\n😅 O sistema de IA está desativado porque a API key não foi configurada.\n\n⚙️ Para configurar, use o comando: ${prefix}apikey SUA_API_KEY\n📞 Suporte: wa.me/553391967445`
           });
           return;
         }
@@ -5487,11 +5686,15 @@ Entre em contato com o dono do bot:
   case 'mercado':
   case 'listar':
   case 'comprarmercado':
+  case 'cmerc':
   case 'meusanuncios':
+  case 'meusan':
   case 'cancelar':
   case 'propriedades':
   case 'comprarpropriedade':
+  case 'cprop':
   case 'coletarpropriedades':
+  case 'cprops':
   case 'habilidades':
   case 'desafiosemanal':
   case 'desafiomensal':
@@ -6909,7 +7112,7 @@ Entre em contato com o dono do bot:
             return reply(`📢 Anúncio #${id} criado: ${mat} x${qty} por ${fmt(price)}.`);
           }
         }
-        if (sub === 'meusanuncios') {
+        if (sub === 'meusanuncios' || sub === 'meusan') {
           const mine = (econ.market||[]).filter(o=>o.seller===sender);
           if (mine.length===0) return reply('Você não tem anúncios.');
           let text='📋 Seus anúncios\n\n';
@@ -6927,7 +7130,7 @@ Entre em contato com o dono do bot:
           econ.market.splice(idx,1); saveEconomy(econ);
           return reply(`❌ Anúncio #${id} cancelado e itens devolvidos.`);
         }
-        if (sub === 'comprarmercado') {
+        if (sub === 'comprarmercado' || sub === 'cmerc') {
           const id = parseInt(args[0]); if (!isFinite(id)) return reply('Informe o ID do anúncio.');
           const ofr = (econ.market||[]).find(o=>o.id===id);
           if (!ofr) return reply('Anúncio não encontrado.');
@@ -6965,7 +7168,7 @@ Entre em contato com o dono do bot:
           }
           return reply(text);
         }
-        if (sub === 'comprarpropriedade') {
+        if (sub === 'comprarpropriedade' || sub === 'cprop') {
           const key = (args[0]||'').toLowerCase(); if (!key) return reply(`Use: ${prefix}comprarpropriedade <tipo>`);
           const prop = (econ.propertiesCatalog||{})[key]; if (!prop) return reply('Propriedade inexistente.');
           if (me.properties?.[key]?.owned) return reply('Você já possui essa propriedade.');
@@ -6975,7 +7178,7 @@ Entre em contato com o dono do bot:
           saveEconomy(econ);
           return reply(`🏠 Você comprou ${prop.name}!`);
         }
-        if (sub === 'coletarpropriedades') {
+        if (sub === 'coletarpropriedades' || sub === 'cprops') {
           const props = me.properties || {}; const keys = Object.keys(props).filter(k=>props[k].owned);
           if (keys.length===0) return reply('Você não possui propriedades.');
           let totalGold = 0; const matsGain = {};
@@ -7340,8 +7543,7 @@ Entre em contato com o dono do bot:
           if (pet.equipment && Object.keys(pet.equipment).length > 0) {
             text += `│ 📦 Equipado:\n`;
             Object.entries(pet.equipment).forEach(([slot, itemId]) => {
-              const shopData = require('./utils/database.js');
-              const item = shopData.SHOP_ITEMS[itemId];
+              const item = SHOP_ITEMS[itemId];
               if (item) {
                 const slotIcon = slot === 'weapon' ? '⚔️' : slot === 'armor' ? '🛡️' : slot === 'shield' ? '🛡️' : slot === 'accessory' ? '💍' : '🧪';
                 text += `│   ${slotIcon} ${item.name}\n`;
@@ -10599,7 +10801,7 @@ Entre em contato com o dono do bot:
         const target = (menc_jid2 && menc_jid2[0]) || null;
         if (!target) return reply(`❌ Marque um usuário!\n\n💡 Uso: ${prefix}rpgadditem @user <item> <quantidade>`);
         
-        const itemArgs = args.slice(0, -1).join('_').toLowerCase();
+        const itemArgs = args.filter(a => !a.startsWith('@')).slice(0, -1).join('_').toLowerCase();
         const qty = parseInt(args[args.length - 1]) || 1;
         
         if (!itemArgs) return reply('❌ Informe o nome do item!');
@@ -11824,7 +12026,7 @@ Entre em contato com o dono do bot:
           }
           
           text += `💡 Use ${prefix}investir <ação> <quantidade>\n`;
-          text += `💡 Use ${prefix}vender <ação> <quantidade>`;
+          text += `💡 Use ${prefix}sell <ação> <quantidade>`;
           
           saveEconomy(econ);
           return reply(text);
@@ -15456,6 +15658,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
         break;
       case 'remsubdono':
       case 'rmsubdono':
+      case 'delsubdono':
         if (!isOwner) return reply("🚫 Apenas o Dono principal pode remover subdonos!");
         if (isSubOwner && !isOwner) return reply("🚫 Subdonos não podem remover outros subdonos!");
         try {
@@ -16695,7 +16898,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
               // Deleta o chat do grupo
               try {
                 if (nazu.chatModify) {
-                  await nazu.chatModify({ delete: true }, groupId);
+                  await deleteChatByLastMessage(groupId);
                   chatsDeleted++;
                 }
               } catch (e) {
@@ -16705,7 +16908,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
               // Limpa conversa do grupo
               try {
                 if (nazu.chatModify) {
-                  await nazu.chatModify({ clear: 'all' }, groupId);
+                  await clearChatHistorySafe(groupId);
                   groupConversationsCleared++;
                 }
               } catch (e) {
@@ -16738,7 +16941,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
                 // Deleta o chat do grupo
                 try {
                   if (nazu.chatModify) {
-                    await nazu.chatModify({ delete: true }, groupId);
+                    await deleteChatByLastMessage(groupId);
                     chatsDeleted++;
                   }
                 } catch (e) {
@@ -16748,7 +16951,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
                 // Limpa conversa do grupo
                 try {
                   if (nazu.chatModify) {
-                    await nazu.chatModify({ clear: 'all' }, groupId);
+                    await clearChatHistorySafe(groupId);
                     groupConversationsCleared++;
                   }
                 } catch (e) {
@@ -16770,7 +16973,7 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
               const remainingGroups = await nazu.groupFetchAllParticipating();
               for (const groupId of Object.keys(remainingGroups)) {
                 try {
-                  await nazu.chatModify({ clear: 'all' }, groupId);
+                  await clearChatHistorySafe(groupId);
                   groupConversationsCleared++;
                   await new Promise(resolve => setTimeout(resolve, 500));
                 } catch (e) {
@@ -18024,17 +18227,17 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
               }
 
               if (!targetUser) {
-                // Tenta usar cache/onWhatsApp
+                // Tenta usar cache/onWhatsApp, mas permite JID como fallback
                 try {
                   const lid = await getLidFromJidCached(nazu, candidateJid);
                   if (lid && lid.includes('@lid')) {
                     targetUser = lid;
                   } else {
-                    return reply('❌ Não foi possível obter o LID desse número. Marque o usuário ou tente novamente quando o LID estiver disponível.');
+                    targetUser = candidateJid;
                   }
                 } catch (err) {
                   console.log('Erro ao obter LID via onWhatsApp:', err?.message || err);
-                  return reply('❌ Erro ao obter LID do número fornecido. Tente marcar o usuário.');
+                  targetUser = candidateJid;
                 }
               }
             } else {
@@ -18071,11 +18274,11 @@ Exemplo: ${prefix}tradutor espanhol | Olá mundo! ✨`);
                   if (lid && lid.includes('@lid')) {
                     targetUser = lid;
                   } else {
-                    return reply('❌ Não foi possível obter o LID desse número. Marque o usuário ou tente novamente quando o LID estiver disponível.');
+                    targetUser = candidateJid;
                   }
                 } catch (err) {
                   console.log('Erro ao obter LID via onWhatsApp:', err?.message || err);
-                  return reply('❌ Erro ao obter LID do número fornecido. Tente marcar o usuário.');
+                  targetUser = candidateJid;
                 }
               }
             } else {
@@ -21722,7 +21925,7 @@ case 'streamabledl':
 │ • Repo: ${repo.html_url}
 │ • Clone: ${repo.clone_url}
 │
-│ 📞 *Suporte:* wa.me/553399285117
+│ 📞 *Suporte:* wa.me/553391967445
 │
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
@@ -21731,7 +21934,7 @@ case 'streamabledl':
               reply(gitInfo);
             }).catch((e) => {
               console.error('Erro ao buscar info do GitHub:', e);
-              reply(`❌ Erro ao buscar informações. Acesse diretamente:\n🔗 https://github.com/hiudyy/nazuna\n📞 Suporte: wa.me/553399285117`);
+              reply(`❌ Erro ao buscar informações. Acesse diretamente:\n🔗 https://github.com/hiudyy/nazuna\n📞 Suporte: wa.me/553391967445`);
             });
           });
         } catch (e) {
@@ -22321,7 +22524,9 @@ ${prefix}addautomidia <palavra> | <legenda>
 
 🚫 *Blacklist Global*
 • Banir: ${prefix}addblackglobal @usuario | motivo
+  ou: ${prefix}addblackglobal 5511999999999 | motivo
 • Desbanir: ${prefix}rmblackglobal @usuario
+  ou: ${prefix}rmblackglobal 5511999999999
 • Listar: ${prefix}listblackglobal
 • Usuário banido é removido automaticamente dos grupos
 
@@ -23386,7 +23591,7 @@ Precisa de ajuda? Entre em contato:
       case 'numero-dono':
         try {
           if (!isOwner) return reply("Este comando é exclusivo para o meu dono!");
-          if (!q) return reply(`Por favor, digite o novo número do dono.\nExemplo: ${prefix}${command} +553399285117`);
+          if (!q) return reply(`Por favor, digite o novo número do dono.\nExemplo: ${prefix}${command} +553391967445`);
           let config = JSON.parse(fs.readFileSync(CONFIG_FILE));
           config.numerodono = q;
           writeJsonFile(CONFIG_FILE, config);
@@ -23985,6 +24190,39 @@ Precisa de ajuda? Entre em contato:
           await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
         }
         break;
+      case 'listbangp':
+        try {
+          if (!isOwner) return reply('⛔ Desculpe, este comando é exclusivo para o meu dono!');
+
+          const bannedGroups = Object.keys(banGpIds || {}).filter(id => banGpIds[id]);
+          if (bannedGroups.length === 0) {
+            return reply('✅ Nenhum grupo banido no momento.');
+          }
+
+          const maxItems = 50;
+          let teks = `🚫 *Grupos Banidos* (${bannedGroups.length})\n\n`;
+
+          for (let i = 0; i < Math.min(bannedGroups.length, maxItems); i++) {
+            const groupId = bannedGroups[i];
+            let subject = 'Desconhecido';
+            try {
+              const meta = await getCachedGroupMetadata(groupId);
+              subject = meta?.subject || subject;
+            } catch {}
+
+            teks += `${i + 1}. ${subject}\n🆔 ${groupId}\n\n`;
+          }
+
+          if (bannedGroups.length > maxItems) {
+            teks += `... e mais ${bannedGroups.length - maxItems} grupo(s).`;
+          }
+
+          await reply(teks);
+        } catch (e) {
+          console.error(e);
+          await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
+        }
+        break;
       case 'bangp':
       case 'unbangp':
       case 'desbangp':
@@ -24085,6 +24323,7 @@ Precisa de ajuda? Entre em contato:
       case 'listavip':
       case 'premiumlist':
       case 'listpremium':
+      case 'listprem':
         try {
           if (!isOwner) return reply('⛔ Desculpe, este comando é exclusivo para o meu dono!');
           const premiumList = premiumListaZinha || {};
@@ -24129,6 +24368,29 @@ Precisa de ajuda? Entre em contato:
         } catch (e) {
           console.error(e);
           await reply('😔 Ops, algo deu errado. Tente novamente mais tarde!');
+        }
+        break;
+      case 'resetgold':
+        try {
+          if (!isOwner) return reply('⛔ Desculpe, este comando é exclusivo para o meu dono!');
+          if (!menc_os2) return reply('Marque alguém 🙄');
+
+          const econ = loadEconomy();
+          const targetData = getEcoUser(econ, menc_os2);
+
+          targetData.wallet = 0;
+          targetData.bank = 0;
+          saveEconomy(econ);
+
+          await nazu.sendMessage(from, {
+            text: `🧹 @${getUserName(menc_os2)} teve o gold resetado (carteira e banco).`,
+            mentions: [menc_os2]
+          }, {
+            quoted: info
+          });
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro interno. Tente novamente em alguns minutos.');
         }
         break;
       
@@ -25651,7 +25913,8 @@ ${prefix}togglecmdvip premium_ia off`);
           const isPremGp = !!premiumListaZinha[from] ? "✅" : "❌";
           const secFlags = [
             ["Antiporn", !!isAntiPorn],
-            ["AntiLink", !!isAntiLinkGp],
+            ["AntiLink GP", !!isAntiLinkGp],
+            ["AntiLink Canal", !!isAntiLinkCanal],
             ["AntiLinkHard", !!groupData.antilinkhard],
             ["AntiLinkSoft", !!groupData.antilinksoft],
             ["AntiDoc", !!groupData.antidoc],
@@ -25758,7 +26021,7 @@ ${prefix}togglecmdvip premium_ia off`);
           const TextinCriadorInfo = `╭━━━⊱ 👨‍💻 *CRIADOR* 👨‍💻 ⊱━━━╮
 │
 │ 💎 *Nome:* Hiudy
-│ 📱 *WhatsApp:* wa.me/553399285117
+│ 📱 *WhatsApp:* wa.me/553391967445
 │ 🌐 *GitHub:* github.com/hiudyy
 │ 📸 *Instagram:* instagram.com/hiudyyy_
 │
@@ -25907,6 +26170,105 @@ ${prefix}togglecmdvip premium_ia off`);
           await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
         }
         break;
+      case 'rmbg':
+      case 'sbg':
+      case 'sfundo':
+        if (!KeyCog) {
+          notifyOwnerAboutApiKey(nazu, nmrdn, 'API key não configurada', 'RM BG', prefix);
+          return reply('⚠️ API key não configurada. Use o comando apikey.');
+        }
+
+        const imgMsg = quotedMessageContent?.imageMessage ||
+          quotedMessageContent?.viewOnceMessage?.message?.imageMessage ||
+          quotedMessageContent?.viewOnceMessageV2?.message?.imageMessage ||
+          info.message?.imageMessage ||
+          info.message?.viewOnceMessage?.message?.imageMessage ||
+          info.message?.viewOnceMessageV2?.message?.imageMessage;
+
+        if (!imgMsg) {
+          return reply(`❌ Marque uma imagem para remover o fundo.\n\n💡 Uso: ${prefix}${command}`);
+        }
+
+        reply('⏳ Removendo fundo, aguarde...');
+
+        return getFileBuffer(imgMsg, 'image')
+          .then((imageBuffer) => upload(imageBuffer, true))
+          .then((imageUrl) => {
+            if (!imageUrl) throw new Error('Falha ao fazer upload da imagem.');
+            return axios.post('https://cog.api.br/api/v1/image/remove-bg', { url: imageUrl }, {
+              headers: { 'X-API-Key': KeyCog }
+            });
+          })
+          .then((response) => {
+            const resultUrl = response?.data?.result?.download;
+            if (!response?.data?.status || !resultUrl) {
+              throw new Error('Não foi possível remover o fundo da imagem.');
+            }
+
+            if (command === 'sbg' || command === 'sfundo') {
+              return sendSticker(nazu, from, {
+                sticker: { url: resultUrl },
+                author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
+                packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+                type: 'image'
+              }, {
+                quoted: info
+              });
+            }
+
+            return nazu.sendMessage(from, { image: { url: resultUrl } }, { quoted: info });
+          })
+          .catch((e) => {
+            if (isApiKeyError(e)) {
+              notifyOwnerAboutApiKey(nazu, nmrdn, e.message, 'RM BG', prefix);
+              return reply('⚠️ Problema com a API key da Cognima.');
+            }
+            console.error(e);
+            return reply('❌ Ocorreu um erro interno. Tente novamente em alguns minutos.');
+          });
+      case 'upscale':
+        if (!KeyCog) {
+          notifyOwnerAboutApiKey(nazu, nmrdn, 'API key não configurada', 'UPSCALE', prefix);
+          return reply('⚠️ API key não configurada. Use o comando apikey.');
+        }
+
+        const upscaleImgMsg = quotedMessageContent?.imageMessage ||
+          quotedMessageContent?.viewOnceMessage?.message?.imageMessage ||
+          quotedMessageContent?.viewOnceMessageV2?.message?.imageMessage ||
+          info.message?.imageMessage ||
+          info.message?.viewOnceMessage?.message?.imageMessage ||
+          info.message?.viewOnceMessageV2?.message?.imageMessage;
+
+        if (!upscaleImgMsg) {
+          return reply(`❌ Marque uma imagem para melhorar a qualidade.\n\n💡 Uso: ${prefix}${command}`);
+        }
+
+        reply('⏳ Melhorando a imagem, aguarde...');
+
+        return getFileBuffer(upscaleImgMsg, 'image')
+          .then((imageBuffer) => upload(imageBuffer, true))
+          .then((imageUrl) => {
+            if (!imageUrl) throw new Error('Falha ao fazer upload da imagem.');
+            return axios.post('https://cog.api.br/api/v1/image/upscale', { url: imageUrl }, {
+              headers: { 'X-API-Key': KeyCog }
+            });
+          })
+          .then((response) => {
+            const resultUrl = response?.data?.result?.download;
+            if (!response?.data?.status || !resultUrl) {
+              throw new Error('Não foi possível melhorar a imagem.');
+            }
+
+            return nazu.sendMessage(from, { image: { url: resultUrl } }, { quoted: info });
+          })
+          .catch((e) => {
+            if (isApiKeyError(e)) {
+              notifyOwnerAboutApiKey(nazu, nmrdn, e.message, 'UPSCALE', prefix);
+              return reply('⚠️ Problema com a API key da Cognima.');
+            }
+            console.error(e);
+            return reply('❌ Ocorreu um erro interno. Tente novamente em alguns minutos.');
+          });
       case 'qc':
         try {
           if (!q) return reply('Falta o texto.');
@@ -27879,7 +28241,161 @@ A mensagem será enviada todos os dias às ${normalizedTime} (horário de São P
         }
         break;
 
-case 'setdiv':
+      case 'divdono':
+        try {
+          if (!isOwner) return reply("Apenas o dono do bot pode usar este comando.");
+
+          const sub = (args[0] || '').toLowerCase();
+          const rest = args.slice(1).join(' ').trim();
+          const config = loadDonoDivulgacao();
+          const groups = Array.isArray(config.groups) ? config.groups : [];
+
+          const helpText = `📣 *DIVULGAÇÃO DO DONO (NOVO)*\n\n` +
+            `• ${prefix}divdono add [id] (no grupo ou com ID)\n` +
+            `• ${prefix}divdono rem <id>\n` +
+            `• ${prefix}divdono list\n` +
+            `• ${prefix}divdono msg <texto>\n` +
+            `• ${prefix}divdono send [texto] (usa msg salva)\n` +
+            `• ${prefix}divdono time <HH:MM|off>\n` +
+            `• ${prefix}divdono status`;
+
+          if (!sub || sub === 'help') {
+            return reply(helpText);
+          }
+
+          if (sub === 'add' || sub === 'registrar' || sub === 'register') {
+            let targetGroupId = rest;
+            if (!targetGroupId && isGroup) targetGroupId = from;
+            if (!targetGroupId) return reply(`💡 Use: ${prefix}divdono add [id_do_grupo]`);
+
+            if (!targetGroupId.includes('@g.us')) {
+              targetGroupId += '@g.us';
+            }
+            if (!isGroupId(targetGroupId)) {
+              return reply('❌ ID de grupo inválido! Deve terminar com @g.us');
+            }
+
+            if (!groups.includes(targetGroupId)) {
+              groups.push(targetGroupId);
+              config.groups = groups;
+              saveDonoDivulgacao(config);
+              return reply(`✅ Grupo registrado para divulgação.\n📌 Total: ${groups.length}`);
+            }
+            return reply('⚠️ Este grupo já está registrado.');
+          }
+
+          if (sub === 'rem' || sub === 'remove' || sub === 'del') {
+            if (!rest) return reply(`💡 Use: ${prefix}divdono rem <id_do_grupo>`);
+            let targetGroupId = rest.trim();
+            if (!targetGroupId.includes('@g.us')) {
+              targetGroupId += '@g.us';
+            }
+            const newGroups = groups.filter(id => id !== targetGroupId);
+            if (newGroups.length === groups.length) {
+              return reply('⚠️ Grupo não encontrado na lista.');
+            }
+            config.groups = newGroups;
+            saveDonoDivulgacao(config);
+            return reply(`✅ Grupo removido da divulgação.\n📌 Total: ${newGroups.length}`);
+          }
+
+          if (sub === 'list' || sub === 'lista') {
+            if (!groups.length) return reply('⚠️ Nenhum grupo registrado para divulgação.');
+
+            let text = `📣 *GRUPOS REGISTRADOS (${groups.length})*\n`;
+            let index = 1;
+            for (const groupId of groups) {
+              let groupName = null;
+              try {
+                const meta = await nazu.groupMetadata(groupId).catch(() => null);
+                groupName = meta?.subject || null;
+              } catch (e) {}
+              text += `\n${index}. ${groupName ? groupName + ' - ' : ''}${groupId}`;
+              index++;
+              if (index > 30) {
+                text += `\n\n...e mais ${groups.length - 30} grupo(s).`;
+                break;
+              }
+            }
+            return reply(text);
+          }
+
+          if (sub === 'msg' || sub === 'mensagem') {
+            if (!rest) {
+              const current = (config.message || '').trim() || 'Nenhuma mensagem salva.';
+              return reply(`📝 *Mensagem atual:*\n${current}`);
+            }
+            config.message = rest;
+            saveDonoDivulgacao(config);
+            return reply('✅ Mensagem de divulgação salva com sucesso.');
+          }
+
+          if (sub === 'send' || sub === 'enviar') {
+            const customText = rest || null;
+            const result = await runDonoDivulgacaoSend(nazu, customText, 'manual');
+            if (!result.success) return reply(result.message);
+            return reply(`✅ Divulgação enviada.\n📨 Enviadas: ${result.sent}\n⚠️ Falhas: ${result.failed}`);
+          }
+
+          if (sub === 'time' || sub === 'hora' || sub === 'agendar') {
+            if (!rest) {
+              const status = config.schedule?.enabled ? 'ativado' : 'desativado';
+              const time = config.schedule?.time || '—';
+              return reply(`⏰ *Agendamento:* ${status}\n🕒 Horário: ${time}\n💡 Use ${prefix}divdono time HH:MM ou off`);
+            }
+
+            if (['off', 'desligar', 'desativar'].includes(rest.toLowerCase())) {
+              config.schedule = config.schedule || {};
+              config.schedule.enabled = false;
+              config.schedule.time = null;
+              config.schedule.lastRun = null;
+              saveDonoDivulgacao(config);
+              unscheduleDonoDivulgacaoJob();
+              return reply('✅ Agendamento diário desativado.');
+            }
+
+            const normalized = normalizeScheduleTime(rest);
+            if (!normalized) {
+              return reply('❌ Formato inválido. Use HH:MM (ex: 09:30).');
+            }
+
+            config.schedule = config.schedule || {};
+            config.schedule.enabled = true;
+            config.schedule.time = normalized;
+            config.schedule.lastRun = null;
+            saveDonoDivulgacao(config);
+            scheduleDonoDivulgacaoJob(normalized, nazu);
+
+            return reply(`✅ Agendamento diário definido para ${normalized} (horário de São Paulo).`);
+          }
+
+          if (sub === 'status') {
+            const schedule = config.schedule || {};
+            const status = schedule.enabled ? 'ativado' : 'desativado';
+            const time = schedule.time || '—';
+            const msgPreview = (config.message || '').trim();
+            const lastAuto = config.stats?.lastAuto ? new Date(config.stats.lastAuto).toLocaleString('pt-BR') : '—';
+            const lastManual = config.stats?.lastManual ? new Date(config.stats.lastManual).toLocaleString('pt-BR') : '—';
+
+            let text = `📣 *STATUS DIVULGAÇÃO DO DONO*\n\n`;
+            text += `📌 Grupos: ${groups.length}\n`;
+            text += `🕒 Agendamento: ${status}\n`;
+            text += `⏰ Horário: ${time}\n`;
+            text += `🧾 Mensagem: ${msgPreview ? msgPreview.slice(0, 120) + (msgPreview.length > 120 ? '...' : '') : 'Nenhuma'}\n`;
+            text += `📨 Total enviado: ${config.stats?.totalSent || 0}\n`;
+            text += `🗓️ Último manual: ${lastManual}\n`;
+            text += `🤖 Último automático: ${lastAuto}`;
+            return reply(text);
+          }
+
+          return reply(helpText);
+        } catch (e) {
+          console.error('Erro no comando divdono:', e);
+          await reply('💔 Ocorreu um erro ao processar o comando.');
+        }
+        break;
+
+      case 'setdiv':
         try {
           if (!isOwner) return reply("Apenas o dono do bot pode usar este comando.");
 
@@ -28710,23 +29226,48 @@ Exemplos:
         try {
           if (!isGroup) return reply("Isso só pode ser usado em grupo 💔");
           if (!isGroupAdmin) return reply("Você precisa ser administrador 💔");
-          if (!menc_os2) return reply("Marque um usuário 🙄");
-          const reason = q.includes(' ') ? q.split(' ').slice(1).join(' ') : "Motivo não informado";
+          let targetUser = menc_os2 || null;
+          if (!targetUser && q && q.trim()) {
+            const firstArg = q.trim().split(/\s+/)[0];
+            if ((isValidJid(firstArg) || isValidLid(firstArg)) && firstArg.includes('@')) {
+              targetUser = firstArg;
+            } else {
+              const cleanNumber = firstArg.replace(/\D/g, '');
+              if (cleanNumber.length >= 10) {
+                const candidateJid = buildUserId(cleanNumber, config);
+                if (groupMetadata?.participants) {
+                  const participant = groupMetadata.participants.find(p => p.id === candidateJid || p.lid === candidateJid || (p.lid && p.lid.includes(cleanNumber)));
+                  if (participant?.lid) targetUser = participant.lid;
+                  else if (participant?.id) targetUser = participant.id;
+                }
+                if (!targetUser) {
+                  try {
+                    const lid = await getLidFromJidCached(nazu, candidateJid);
+                    targetUser = lid && lid.includes('@lid') ? lid : candidateJid;
+                  } catch (err) {
+                    targetUser = candidateJid;
+                  }
+                }
+              }
+            }
+          }
+          if (!targetUser) return reply(`Marque o usuário ou forneça o número (ex: ${prefix}addblacklist 5511999998888 motivo).`);
+          const reason = args.length > 1 ? args.slice(1).join(' ') : "Motivo não informado";
           const groupFilePath = buildGroupFilePath(from);
           let groupData = fs.existsSync(groupFilePath) ? JSON.parse(fs.readFileSync(groupFilePath)) : {
             blacklist: {}
           };
           
           groupData.blacklist = groupData.blacklist || {};
-          if (groupData.blacklist[menc_os2]) return reply("❌ Este usuário já está na blacklist.");
+          if (groupData.blacklist[targetUser]) return reply("❌ Este usuário já está na blacklist.");
           
-          groupData.blacklist[menc_os2] = {
+          groupData.blacklist[targetUser] = {
             reason,
             timestamp: Date.now()
           };
           fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
-          reply(`✅ @${getUserName(menc_os2)} foi adicionado à blacklist.\nMotivo: ${reason}`, {
-            mentions: [menc_os2]
+          reply(`✅ @${getUserName(targetUser)} foi adicionado à blacklist.\nMotivo: ${reason}`, {
+            mentions: [targetUser]
           });
         } catch (e) {
           console.error(e);
@@ -28738,18 +29279,43 @@ Exemplos:
         try {
           if (!isGroup) return reply("Isso só pode ser usado em grupo 💔");
           if (!isGroupAdmin) return reply("Você precisa ser administrador 💔");
-          if (!menc_os2) return reply("Marque um usuário 🙄");
+          let targetUser = menc_os2 || null;
+          if (!targetUser && q && q.trim()) {
+            const firstArg = q.trim().split(/\s+/)[0];
+            if ((isValidJid(firstArg) || isValidLid(firstArg)) && firstArg.includes('@')) {
+              targetUser = firstArg;
+            } else {
+              const cleanNumber = firstArg.replace(/\D/g, '');
+              if (cleanNumber.length >= 10) {
+                const candidateJid = buildUserId(cleanNumber, config);
+                if (groupMetadata?.participants) {
+                  const participant = groupMetadata.participants.find(p => p.id === candidateJid || p.lid === candidateJid || (p.lid && p.lid.includes(cleanNumber)));
+                  if (participant?.lid) targetUser = participant.lid;
+                  else if (participant?.id) targetUser = participant.id;
+                }
+                if (!targetUser) {
+                  try {
+                    const lid = await getLidFromJidCached(nazu, candidateJid);
+                    targetUser = lid && lid.includes('@lid') ? lid : candidateJid;
+                  } catch (err) {
+                    targetUser = candidateJid;
+                  }
+                }
+              }
+            }
+          }
+          if (!targetUser) return reply(`Marque o usuário ou forneça o número (ex: ${prefix}delblacklist 5511999998888).`);
           const groupFilePath = buildGroupFilePath(from);
           let groupData = fs.existsSync(groupFilePath) ? JSON.parse(fs.readFileSync(groupFilePath)) : {
             blacklist: {}
           };
           
           groupData.blacklist = groupData.blacklist || {};
-          if (!groupData.blacklist[menc_os2]) return reply("❌ Este usuário não está na blacklist.");
-          delete groupData.blacklist[menc_os2];
+          if (!groupData.blacklist[targetUser]) return reply("❌ Este usuário não está na blacklist.");
+          delete groupData.blacklist[targetUser];
           fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
-          reply(`✅ @${getUserName(menc_os2)} foi removido da blacklist.`, {
-            mentions: [menc_os2]
+          reply(`✅ @${getUserName(targetUser)} foi removido da blacklist.`, {
+            mentions: [targetUser]
           });
         } catch (e) {
           console.error(e);
@@ -28882,6 +29448,7 @@ Exemplos:
       case 'suporte':
       case 'ticketsuporte':
       case 'suporteticket':
+      case 'ticket':
         try {
           if (!isGroup) return reply('Use este comando no grupo para abrir um ticket.');
 
