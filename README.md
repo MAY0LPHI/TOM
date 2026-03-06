@@ -48,7 +48,7 @@ Desenvolvido em **Node.js** com **Baileys** · Hospedado no **Replit**
   "nomebot": "TOM",
   "prefixo": ".",
   "nomedono": "LIBID",
-  "numerodono": "5527988963725"
+  "numerodono": "5"
 }
 ```
 
