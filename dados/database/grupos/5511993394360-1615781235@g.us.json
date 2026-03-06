@@ -1,0 +1,45 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-06T02:55:27.239Z",
+  "groupName": "Os pidaumm",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "69055121780979@lid",
+      "msg": 6,
+      "cmd": 7,
+      "figu": 0,
+      "pushname": "ㅤ",
+      "firstSeen": "2026-03-06T02:55:27.240Z",
+      "lastActivity": "2026-03-06T03:05:51.056Z"
+    },
+    {
+      "id": "193514096820356@lid",
+      "msg": 10,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Raul",
+      "firstSeen": "2026-03-06T02:55:45.277Z",
+      "lastActivity": "2026-03-06T03:05:43.714Z"
+    },
+    {
+      "id": "238091545640995@lid",
+      "msg": 17,
+      "cmd": 8,
+      "figu": 2,
+      "pushname": "Murylo",
+      "firstSeen": "2026-03-06T02:55:56.774Z",
+      "lastActivity": "2026-03-06T03:02:30.493Z"
+    }
+  ],
+  "modobrincadeira": true
+}
