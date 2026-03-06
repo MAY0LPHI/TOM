@@ -4,12 +4,12 @@ import { groupVipCommandsByCategory, getVipStats } from '../utils/vipCommandsMan
  * Gera o menu VIP dinamicamente baseado nos comandos cadastrados
  */
 async function menuVIP(prefix, botName = "MeuBot", userName = "Usuário", {
-  header = `╭┈⊰ 🌸 『 *${botName}* 』\n┊Olá, #user#!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-  menuTopBorder = "╭┈",
-  bottomBorder = "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-  menuItemIcon = "•.̇𖥨֗🍓⭟",
-  separatorIcon = "❁",
-  middleBorder = "┊"
+  header = `╔══「 💀 *${botName}* 💀 」══╗\n║  👾 *#user#*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+  menuTopBorder = "╔══",
+  bottomBorder = "╚══[ ⚡ FIM DO LOG ]══╝",
+  menuItemIcon = "  ⌨️  ",
+  separatorIcon = "💾",
+  middleBorder = "║"
 } = {}) {
   try {
     const grouped = groupVipCommandsByCategory();
@@ -57,11 +57,11 @@ ${bottomBorder}
 }
 
 async function menuVIPInfo(prefix, botName = "MeuBot", userName = "Usuário", {
-  header = `╭┈⊰ 🌸 『 *${botName}* 』\n┊Olá, #user#!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-  menuTopBorder = "╭┈",
-  bottomBorder = "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-  separatorIcon = "❁",
-  middleBorder = "┊"
+  header = `╔══「 💀 *${botName}* 💀 」══╗\n║  👾 *#user#*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+  menuTopBorder = "╔══",
+  bottomBorder = "╚══[ ⚡ FIM DO LOG ]══╝",
+  separatorIcon = "💾",
+  middleBorder = "║"
 } = {}) {
   const stats = getVipStats();
   const formattedHeader = header.replace(/#user#/g, userName);
@@ -96,12 +96,12 @@ ${bottomBorder}
 }
 
 async function listVIPCommands(prefix, botName = "MeuBot", userName = "Usuário", {
-  header = `╭┈⊰ 🌸 『 *${botName}* 』\n┊Olá, #user#!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-  menuTopBorder = "╭┈",
-  bottomBorder = "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-  menuItemIcon = "•.̇𖥨֗🍓⭟",
-  separatorIcon = "❁",
-  middleBorder = "┊"
+  header = `╔══「 💀 *${botName}* 💀 」══╗\n║  👾 *#user#*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+  menuTopBorder = "╔══",
+  bottomBorder = "╚══[ ⚡ FIM DO LOG ]══╝",
+  menuItemIcon = "  ⌨️  ",
+  separatorIcon = "💾",
+  middleBorder = "║"
 } = {}) {
   const grouped = groupVipCommandsByCategory();
   const stats = getVipStats();

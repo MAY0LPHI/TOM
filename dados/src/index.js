@@ -2059,6 +2059,8 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     const isAntiBtn = groupData.antibtn;
     const isAntiStatus = groupData.antistatus;
     const isAutoRepo = groupData.autorepo;
+    const isSimsimi = groupData.modosimsimi;
+    const isAntiGp = groupData.antigp;
     const isAssistente = groupData.assistente;
     const isModoLite = isGroup && isModoLiteActive(groupData, modoLiteGlobal);
     
@@ -2132,6 +2134,9 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
       }
     }
     if (isGroup && isCmd && isOnlyAdmin && !isGroupAdmin && !soadmBypassCommands.includes(command)) {
+      return;
+    }
+    if (isGroup && isAntiGp && !isOwner && command !== 'antigp') {
       return;
     }
     if (isGroup && info.message.protocolMessage && info.message.protocolMessage.type === 0 && isAntiDel) {
@@ -3612,8 +3617,11 @@ Código: *${roleCode}*`,
           const shouldForceSquare = global.autoStickerMode === 'square';
           await sendSticker(nazu, from, {
             sticker: buffer,
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+            author: `[ ${pushname} ]
+[ ${nomebot} ]
+[ ${nomedono} ]
+[ TOM Bot ]`,
+            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
             type: isVideo ? 'video' : 'image',
             forceSquare: shouldForceSquare
           }, {
@@ -19681,7 +19689,7 @@ case 'facebookdl':
 │ 🔄 *Atualizado:* ${updatedAt}
 │ 📤 *Último push:* ${pushedAt}
 │
-│ ⏱️ *Nazuna vem sendo ativamente*
+│ ⏱️ *TOM vem sendo ativamente*
 │ *mantida há:* ${tempoAtivo}
 │
 │ 🔗 *Links:*
@@ -20042,7 +20050,7 @@ Exemplo: ${prefix}msgprefix Use #prefixo# antes do comando!
 
 🔹 *Nome do Bot*
 Use: ${prefix}nomebot <nome>
-Exemplo: ${prefix}nomebot Nazuna
+Exemplo: ${prefix}nomebot TOM
 • Altera o nome exibido nos menus
 • Use nomes curtos e memoráveis
 
@@ -23863,8 +23871,10 @@ ${prefix}togglecmdvip premium_ia off`);
           if (command === 'sbg' || command === 'sfundo') {
             return sendSticker(nazu, from, {
               sticker: { url: resultUrl },
-              author: `${pushname}\n${nomebot}\n${nomedono}`,
-              packname: 'Nazuna Bot - Stickers',
+              author: `[ ${pushname} ]
+[ ${nomebot} ]
+[ ${nomedono} ]`,
+              packname: '⚡ HACK STICKERS 💀',
               type: 'image'
             }, {
               quoted: info
@@ -23941,16 +23951,17 @@ ${prefix}togglecmdvip premium_ia off`);
               "replyMessage": {}
             }]
           };
-          var res;
-          res = await axios.post('https://cognima-quote.onrender.com/generate', json, {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
+          const { gerarQuoteCard } = await import('../local-api/quotes.js');
+          const localQcResult = await gerarQuoteCard({ nome: pushname, texto: q, fotoUrl: ppimg });
+          if (!localQcResult.ok) throw new Error(localQcResult.msg || 'Erro ao gerar card');
+          var res = { data: { result: { image: localQcResult.image } } };
           await sendSticker(nazu, from, {
-            sticker: Buffer.from(res.data.result.image, 'base64'),
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+            sticker: Buffer.from(localQcResult.image, 'base64'),
+            author: `[ ${pushname} ]
+[ ${nomebot} ]
+[ ${nomedono} ]
+[ TOM Bot ]`,
+            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
             type: 'image'
           }, {
             quoted: info
@@ -23973,8 +23984,11 @@ ${prefix}togglecmdvip premium_ia off`);
             sticker: {
               url: datzc
             },
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+            author: `[ ${pushname} ]
+[ ${nomebot} ]
+[ ${nomedono} ]
+[ TOM Bot ]`,
+            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
             type: 'image'
           }, {
             quoted: info
@@ -23995,13 +24009,10 @@ ${prefix}togglecmdvip premium_ia off`);
           cores = cor[Math.floor(Math.random() * cor.length)];
           var fontes;
           fontes = fonte[Math.floor(Math.random() * fonte.length)];
-          
-          // Função para quebrar texto em linhas
           function breakText(text, maxCharsPerLine = 20) {
             const words = text.split(' ');
             const lines = [];
             let currentLine = '';
-            
             for (const word of words) {
               if ((currentLine + word).length <= maxCharsPerLine) {
                 currentLine += (currentLine ? ' ' : '') + word;
@@ -24011,19 +24022,15 @@ ${prefix}togglecmdvip premium_ia off`);
               }
             }
             if (currentLine) lines.push(currentLine);
-            
-            return lines.join('%0A'); // %0A = quebra de linha na URL
+            return lines.join('%0A');
           }
-          
-          // Aplicar quebra de linha para textos longos
           let processedText = q.length > 20 ? breakText(q, 20) : q;
-          
           await sendSticker(nazu, from, {
             sticker: {
               url: `https://huratera.sirv.com/PicsArt_08-01-10.00.42.png?profile=Example-Text&text.0.text=${encodeURIComponent(processedText)}&text.0.outline.color=000000&text.0.outline.blur=0&text.0.outline.opacity=55&text.0.color=${cores}&text.0.font.family=${fontes}&text.0.font.weight=bold&text.0.background.color=ff0000`
             },
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+            author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
+            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
             type: 'image'
           }, {
             quoted: info
@@ -24036,20 +24043,16 @@ ${prefix}togglecmdvip premium_ia off`);
       case 'attp':
         try {
           if (!q) return reply('Cadê o texto?');
-          
           const fs = await import('fs');
           const path = await import('path');
           const axios = (await import('axios')).default;
           const { exec } = await import('child_process');
           const { promisify } = await import('util');
           const execAsync = promisify(exec);
-          
-          // Função para quebrar texto em linhas
           function breakText(text, maxCharsPerLine = 20) {
             const words = text.split(' ');
             const lines = [];
             let currentLine = '';
-            
             for (const word of words) {
               if ((currentLine + word).length <= maxCharsPerLine) {
                 currentLine += (currentLine ? ' ' : '') + word;
@@ -24059,80 +24062,42 @@ ${prefix}togglecmdvip premium_ia off`);
               }
             }
             if (currentLine) lines.push(currentLine);
-            
             return lines.join('%0A');
           }
-          
-          // Processar texto
           let processedText = q.length > 20 ? breakText(q, 20) : q;
-          
-          // Cores disponíveis
           const cores = ["f702ff", "ff0202", "00ff2e", "efff00", "00ecff", "3100ff", "ffb400", "ff00b0", "00ff95", "9d00ff", "ff6b00", "00fff7", "ff00d4", "a8ff00", "ff0062", "00b3ff", "d4ff00", "ff009d"];
-          
-          // Selecionar uma fonte aleatória
           const fontes = ["Days%20One", "Domine", "Exo", "Fredoka%20One", "Gentium%20Basic", "Gloria%20Hallelujah", "Great%20Vibes", "Orbitron", "PT%20Serif", "Pacifico"];
           const fonteEscolhida = fontes[Math.floor(Math.random() * fontes.length)];
-          
-          // Diretório temporário
           const tempDir = path.join(__dirname, '../midias/temp_attp_' + Date.now());
           if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
           }
-          
           await reply('⏳ Gerando sticker animado... aguarde!');
-          
-          // Baixar 18 imagens com cores diferentes
           const numFrames = 18;
           const downloadPromises = [];
-          
           for (let i = 0; i < numFrames; i++) {
             const cor = cores[i % cores.length];
             const imageUrl = `https://huratera.sirv.com/PicsArt_08-01-10.00.42.png?profile=Example-Text&text.0.text=${encodeURIComponent(processedText)}&text.0.outline.color=000000&text.0.outline.blur=0&text.0.outline.opacity=55&text.0.color=${cor}&text.0.font.family=${fonteEscolhida}&text.0.font.weight=bold&text.0.background.color=ff0000`;
             const imagePath = path.join(tempDir, `frame_${String(i).padStart(3, '0')}.png`);
-            
             downloadPromises.push(
-              axios({
-                url: imageUrl,
-                method: 'GET',
-                responseType: 'arraybuffer'
-              }).then(response => {
+              axios({ url: imageUrl, method: 'GET', responseType: 'arraybuffer' }).then(response => {
                 fs.writeFileSync(imagePath, response.data);
               })
             );
           }
-          
-          // Aguardar download de todas as imagens
           await Promise.all(downloadPromises);
-          
-          // Criar vídeo com ffmpeg
-          const outputVideo = path.join(tempDir, 'output.mp4');
-          const ffmpegCmd = `ffmpeg -framerate 10 -i ${path.join(tempDir, 'frame_%03d.png')} -vf "scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white" -c:v libx264 -pix_fmt yuv420p -t 2 ${outputVideo}`;
-          
-          await execAsync(ffmpegCmd);
-          
-          // Converter para webp animado
           const outputWebp = path.join(tempDir, 'output.webp');
-          const webpCmd = `ffmpeg -i ${outputVideo} -vcodec libwebp -filter:v fps=fps=15 -lossless 0 -compression_level 6 -q:v 50 -loop 0 -preset picture -an -vsync 0 ${outputWebp}`;
-          
+          const webpCmd = `ffmpeg -y -framerate 10 -i "${path.join(tempDir, 'frame_%03d.png')}" -vf "colorkey=0xFF0000:0.15:0.05,format=rgba,scale=512:512" -vcodec libwebp -lossless 0 -compression_level 6 -q:v 50 -loop 0 -preset picture -an -vsync 0 "${outputWebp}"`;
           await execAsync(webpCmd);
-          
-          // Enviar sticker
           await sendSticker(nazu, from, {
             sticker: fs.readFileSync(outputWebp),
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: `👤 Usuario(a)ᮀ۟❁'￫\n🤖 Botᮀ۟❁'￫\n👑 Donoᮀ۟❁'￫\n🌐 Siteᮀ۟❁'￫`,
+            author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
+            packname: `👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐`,
             type: 'image'
           }, {
             quoted: info
           });
-          
-          // Limpar arquivos temporários
-          try {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-          } catch (cleanupError) {
-            console.error('Erro ao limpar arquivos temporários:', cleanupError);
-          }
-          
+          try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch {}
         } catch (e) {
           console.error(e);
           await reply("❌ Ocorreu um erro ao criar o sticker animado. Tente novamente em alguns minutos.");
@@ -24152,8 +24117,11 @@ ${prefix}togglecmdvip premium_ia off`);
           var buffer = await getFileBuffer(isVideo2 ? boij : boij2, isVideo2 ? 'video' : 'image');
           await sendSticker(nazu, from, {
             sticker: buffer,
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+            author: `[ ${pushname} ]
+[ ${nomebot} ]
+[ ${nomedono} ]
+[ TOM Bot ]`,
+            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
             type: isVideo2 ? 'video' : 'image',
             forceSquare: true
           }, {
@@ -24178,8 +24146,11 @@ ${prefix}togglecmdvip premium_ia off`);
           var buffer = await getFileBuffer(isVideo2 ? boij : boij2, isVideo2 ? 'video' : 'image');
           await sendSticker(nazu, from, {
             sticker: buffer,
-            author: `『${pushname}』\n『${nomebot}』\n『${nomedono}』\n『cognima.com.br』`,
-            packname: '👤 Usuario(a)ᮀ۟❁’￫\n🤖 Botᮀ۟❁’￫\n👑 Donoᮀ۟❁’￫\n🌐 Siteᮀ۟❁’￫',
+            author: `[ ${pushname} ]
+[ ${nomebot} ]
+[ ${nomedono} ]
+[ TOM Bot ]`,
+            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
             type: isVideo2 ? 'video' : 'image'
           }, {
             quoted: info
@@ -26407,6 +26378,24 @@ Exemplos:
           await reply("Ocorreu um erro 💔");
         }
         break;
+      case 'antigp': {
+        try {
+          if (!isGroup) return reply("❌ Esse comando só pode ser usado em grupos.");
+          if (!isOwner) return reply("❌ Esse comando é apenas para o dono do bot.");
+          const groupFilePath = buildGroupFilePath(from);
+          groupData.antigp = !groupData.antigp;
+          writeJsonFile(groupFilePath, groupData);
+          if (groupData.antigp) {
+            await reply('🚫 *AntiGP ativado!*\n\nO bot está ignorando todos os comandos neste grupo.\n\nApenas o dono pode usar o bot aqui.\nUse *.antigp* novamente para reativar.');
+          } else {
+            await reply('✅ *AntiGP desativado!*\n\nO bot voltou a responder comandos normalmente neste grupo.');
+          }
+        } catch (e) {
+          console.error(e);
+          await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
+        }
+        break;
+      }
       case 'modobrincadeira':
       case 'modobrincadeiras':
       case 'modobn':
@@ -26433,6 +26422,45 @@ Exemplos:
           await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
         }
         break;
+      case 'simsimi': {
+        try {
+          if (!isGroup) return reply("❌ Esse comando só pode ser usado em grupos.");
+          if (!isGroupAdmin) return reply("❌ Você precisa ser administrador para usar isso.");
+          const simsimiPersonalidades = {
+            divertido:   '😂 *Divertido* — casual, engraçado e descontraído',
+            serio:       '😐 *Sério* — direto, formal e objetivo',
+            romantico:   '❤️ *Romântico* — carinhoso, apaixonado e meigo',
+            debochado:   '😏 *Debochado* — irônico, sarcástico e atrevido',
+            filosofo:    '🤔 *Filósofo* — profundo, reflexivo e pensativo',
+            animado:     '🎉 *Animado* — entusiasmado, empolgado, cheio de emojis',
+          };
+          const groupFilePath = buildGroupFilePath(from);
+          if (q && simsimiPersonalidades[q.trim().toLowerCase()]) {
+            const personalidade = q.trim().toLowerCase();
+            groupData.modosimsimi = true;
+            groupData.simsimiPersonalidade = personalidade;
+            writeJsonFile(groupFilePath, groupData);
+            await reply(`🤖 *SimSimi ativado!*\n\nPersonalidade: ${simsimiPersonalidades[personalidade]}\n\nUse *.simsimi* sem argumento para desativar.`);
+          } else if (q && !simsimiPersonalidades[q.trim().toLowerCase()]) {
+            const lista = Object.entries(simsimiPersonalidades).map(([k, v]) => `• *${prefix}simsimi ${k}* — ${v}`).join('\n');
+            await reply(`❌ Personalidade não encontrada.\n\n*Personalidades disponíveis:*\n${lista}\n\n_Use sem argumento para ativar/desativar com a personalidade atual._`);
+          } else {
+            groupData.modosimsimi = !groupData.modosimsimi;
+            if (!groupData.simsimiPersonalidade) groupData.simsimiPersonalidade = 'divertido';
+            writeJsonFile(groupFilePath, groupData);
+            if (groupData.modosimsimi) {
+              const p = groupData.simsimiPersonalidade;
+              await reply(`🤖 *SimSimi ativado!*\n\nPersonalidade: ${simsimiPersonalidades[p] || simsimiPersonalidades.divertido}\n\nUse *.simsimi [personalidade]* para trocar.\nUse *.simsimi* novamente para desativar.`);
+            } else {
+              await reply('⏸️ *SimSimi desativado!*\n\nAs mensagens do grupo não serão mais respondidas pelo SimSimi.');
+            }
+          }
+        } catch (e) {
+          console.error(e);
+          await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
+        }
+        break;
+      }
       case 'bemvindo':
       case 'bv':
       case 'boasvindas':
@@ -27406,9 +27434,9 @@ Exemplos:
             
             const statusMsg = groupData.assistente 
               ? `✅ *Assistente ativada com sucesso!*\n\n` +
-                `🤖 *Personalidade atual:* ${groupData.assistentePersonality === 'nazuna' ? 'Nazuna (Padrão)' : groupData.assistentePersonality === 'humana' ? 'Humana' : groupData.assistentePersonality === 'pro' ? 'Pro (Comandos)' : 'IA Normal'}\n\n` +
+                `🤖 *Personalidade atual:* ${groupData.assistentePersonality === 'nazuna' ? 'TOM (Padrão)' : groupData.assistentePersonality === 'humana' ? 'Humana' : groupData.assistentePersonality === 'pro' ? 'Pro (Comandos)' : 'IA Normal'}\n\n` +
                 `💡 *Trocar personalidade:*\n` +
-                `• ${prefix}assistente nazuna - Personalidade padrão Nazuna\n` +
+                `• ${prefix}assistente nazuna - Personalidade padrão TOM\n` +
                 `• ${prefix}assistente humana - Age 100% como humana\n` +
                 `• ${prefix}assistente ia - IA normal sem personalidade\n` +
                 `• ${prefix}assistente pro - Interpreta comandos em linguagem natural\n\n` +
@@ -27424,7 +27452,7 @@ Exemplos:
           if (!['nazuna', 'humana', 'ia', 'pro'].includes(personality)) {
             return reply(`❌ *Personalidade inválida!*\n\n` +
               `Escolha uma das opções:\n` +
-              `• ${prefix}assistente nazuna - Personalidade padrão Nazuna (vampira tsundere)\n` +
+              `• ${prefix}assistente nazuna - Personalidade padrão TOM (vampira tsundere)\n` +
               `• ${prefix}assistente humana - Age 100% como uma pessoa real\n` +
               `• ${prefix}assistente ia - IA normal e objetiva\n` +
               `• ${prefix}assistente pro - Interpreta comandos em linguagem natural`);
@@ -27435,7 +27463,7 @@ Exemplos:
           fs.writeFileSync(groupFilePath, JSON.stringify(groupData, null, 2));
           
           const personalityNames = {
-            'nazuna': '🌙 *Nazuna* - Vampira moderna com personalidade tsundere',
+            'nazuna': '😼 *TOM* - Hacker felino sempre no controle',
             'humana': '👤 *Humana* - Age como uma pessoa real, nunca admite ser IA',
             'ia': '🤖 *IA Normal* - Assistente objetiva e direta',
             'pro': '⚡ *Pro* - Interpreta comandos em linguagem natural (não responde, só executa)'
@@ -31002,6 +31030,40 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
         }
         if (!isCmd && isAutoRepo) {
           await processAutoResponse(nazu, from, body, info);
+        };
+        if (!isCmd && isGroup && isSimsimi && body && body.trim() && !info.key.fromMe) {
+          try {
+            const geminiKey = process.env.GEMINI_API_KEY;
+            if (!geminiKey) {
+              console.warn('[SimSimi] GEMINI_API_KEY não configurada.');
+            } else {
+              const simsimiPrompts = {
+                divertido:  'Você é SimSimi, um chatbot divertido, engraçado e descontraído. Responda de forma curta e casual em português brasileiro. Máximo 2 frases. Nunca diga que é uma IA.',
+                serio:      'Você é SimSimi, um assistente sério e direto. Responda de forma objetiva, formal e precisa em português brasileiro. Máximo 2 frases. Nunca diga que é uma IA.',
+                romantico:  'Você é SimSimi, um chatbot romântico e carinhoso. Responda de forma meiga, apaixonada e afetuosa em português brasileiro. Use termos carinhosos. Máximo 2 frases. Nunca diga que é uma IA.',
+                debochado:  'Você é SimSimi, um chatbot debochado e irônico. Responda de forma sarcástica, atrevida e engraçada em português brasileiro. Seja ousado mas sem ofender gravemente. Máximo 2 frases. Nunca diga que é uma IA.',
+                filosofo:   'Você é SimSimi, um chatbot filósofo e reflexivo. Responda de forma profunda, pensativa e filosófica em português brasileiro. Use metáforas e reflexões. Máximo 2 frases. Nunca diga que é uma IA.',
+                animado:    'Você é SimSimi, um chatbot muito animado e entusiasmado! Responda de forma super empolgada em português brasileiro. Use MUITOS emojis e letras maiúsculas para demonstrar entusiasmo. Máximo 2 frases. Nunca diga que é uma IA.',
+              };
+              const personalidade = groupData.simsimiPersonalidade || 'divertido';
+              const systemPrompt = simsimiPrompts[personalidade] || simsimiPrompts.divertido;
+              const simResp = await axios.post(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKey}`,
+                {
+                  contents: [{ parts: [{ text: body.trim() }] }],
+                  systemInstruction: { parts: [{ text: systemPrompt }] },
+                  generationConfig: { maxOutputTokens: 150, temperature: 0.9 }
+                },
+                { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
+              );
+              const simText = simResp.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (simText && simText.trim()) {
+                await nazu.sendMessage(from, { text: simText.trim() }, { quoted: info });
+              }
+            }
+          } catch (simErr) {
+            console.error('[SimSimi] Erro ao gerar resposta:', simErr.message);
+          }
         };
     };
     

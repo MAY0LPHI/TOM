@@ -2015,9 +2015,9 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       const sucesso = userContextDB.updateMemory(grupoUserId, tipoNormalizado, valor_antigo, valor);
       
       if (sucesso) {
-        console.log(`✏️ Nazuna EDITOU: ${tipo} de "${valor_antigo}" para "${valor}" (${grupoUserId})`);
+        console.log(`✏️ TOM EDITOU: ${tipo} de "${valor_antigo}" para "${valor}" (${grupoUserId})`);
       } else {
-        console.warn(`⚠️ Nazuna não encontrou "${valor_antigo}" em ${tipo} para editar`);
+        console.warn(`⚠️ TOM não encontrou "${valor_antigo}" em ${tipo} para editar`);
       }
       return;
     }
@@ -2027,9 +2027,9 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       const sucesso = userContextDB.deleteMemory(grupoUserId, tipoNormalizado, valor);
       
       if (sucesso) {
-        console.log(`🗑️ Nazuna EXCLUIU: ${tipo} = "${valor}" (${grupoUserId})`);
+        console.log(`🗑️ TOM EXCLUIU: ${tipo} = "${valor}" (${grupoUserId})`);
       } else {
-        console.warn(`⚠️ Nazuna não encontrou "${valor}" em ${tipo} para excluir`);
+        console.warn(`⚠️ TOM não encontrou "${valor}" em ${tipo} para excluir`);
       }
       return;
     }
@@ -2040,7 +2040,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'gosto':
       case 'gostos':
         userContextDB.addUserPreference(grupoUserId, 'gostos', valor);
-        console.log(`✅ Nazuna aprendeu: ${grupoUserId} gosta de "${valor}"`);
+        console.log(`✅ TOM aprendeu: ${grupoUserId} gosta de "${valor}"`);
         break;
         
       case 'nao_gosto':
@@ -2048,13 +2048,13 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'não_gosto':
       case 'não_gostos':
         userContextDB.addUserPreference(grupoUserId, 'nao_gostos', valor);
-        console.log(`✅ Nazuna aprendeu: ${grupoUserId} não gosta de "${valor}"`);
+        console.log(`✅ TOM aprendeu: ${grupoUserId} não gosta de "${valor}"`);
         break;
         
       case 'hobby':
       case 'hobbies':
         userContextDB.addUserPreference(grupoUserId, 'hobbies', valor);
-        console.log(`✅ Nazuna aprendeu: hobby de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM aprendeu: hobby de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'assunto_favorito':
@@ -2064,7 +2064,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'tópico':
         userContextDB.addUserPreference(grupoUserId, 'assuntos_favoritos', valor);
         userContextDB.addRecentTopic(grupoUserId, valor);
-        console.log(`✅ Nazuna aprendeu: assunto favorito de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM aprendeu: assunto favorito de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'nota_importante':
@@ -2073,7 +2073,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'informação_importante':
       case 'lembrete':
         userContextDB.addImportantNote(grupoUserId, valor);
-        console.log(`✅ Nazuna anotou: "${valor}" sobre ${grupoUserId}`);
+        console.log(`✅ TOM anotou: "${valor}" sobre ${grupoUserId}`);
         break;
         
       case 'memoria_especial':
@@ -2082,13 +2082,13 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'memória':
       case 'momento_especial':
         userContextDB.addSpecialMemory(grupoUserId, valor);
-        console.log(`✅ Nazuna guardou memória especial: "${valor}" com ${grupoUserId}`);
+        console.log(`✅ TOM guardou memória especial: "${valor}" com ${grupoUserId}`);
         break;
         
       case 'nome':
         // Atualizar o nome do usuário
         userContextDB.updateUserInfo(grupoUserId, valor, null);
-        console.log(`✅ Nazuna aprendeu o nome: ${grupoUserId} se chama "${valor}"`);
+        console.log(`✅ TOM aprendeu o nome: ${grupoUserId} se chama "${valor}"`);
         break;
         
       case 'apelido':
@@ -2096,12 +2096,12 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'nickname':
         // Adicionar apelido
         userContextDB.updateUserInfo(grupoUserId, null, valor);
-        console.log(`✅ Nazuna aprendeu apelido: ${grupoUserId} gosta de ser chamado de "${valor}"`);
+        console.log(`✅ TOM aprendeu apelido: ${grupoUserId} gosta de ser chamado de "${valor}"`);
         break;
         
       case 'idade':
         userContextDB.updatePersonalInfo(grupoUserId, 'idade', valor);
-        console.log(`✅ Nazuna aprendeu: ${grupoUserId} tem ${valor} anos`);
+        console.log(`✅ TOM aprendeu: ${grupoUserId} tem ${valor} anos`);
         break;
         
       case 'localizacao':
@@ -2110,7 +2110,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'cidade':
       case 'lugar':
         userContextDB.updatePersonalInfo(grupoUserId, 'localizacao', valor);
-        console.log(`✅ Nazuna aprendeu: ${grupoUserId} mora em "${valor}"`);
+        console.log(`✅ TOM aprendeu: ${grupoUserId} mora em "${valor}"`);
         break;
         
       case 'profissao':
@@ -2120,14 +2120,14 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'ocupacao':
       case 'ocupação':
         userContextDB.updatePersonalInfo(grupoUserId, 'profissao', valor);
-        console.log(`✅ Nazuna aprendeu: ${grupoUserId} trabalha como "${valor}"`);
+        console.log(`✅ TOM aprendeu: ${grupoUserId} trabalha como "${valor}"`);
         break;
         
       case 'relacionamento':
       case 'status_relacionamento':
       case 'status':
         userContextDB.updatePersonalInfo(grupoUserId, 'relacionamento', valor);
-        console.log(`✅ Nazuna aprendeu: status de relacionamento de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM aprendeu: status de relacionamento de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'familia':
@@ -2140,7 +2140,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
           contextoAtual.informacoes_pessoais.familia.push(valor);
           userContextDB.data[grupoUserId] = contextoAtual;
           userContextDB.saveDatabase();
-          console.log(`✅ Nazuna aprendeu sobre família de ${grupoUserId}: "${valor}"`);
+          console.log(`✅ TOM aprendeu sobre família de ${grupoUserId}: "${valor}"`);
         }
         break;
         
@@ -2153,11 +2153,11 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
         
         if (campo && camposValidos.includes(campo)) {
           userContextDB.updatePersonalInfo(grupoUserId, campo, valor);
-          console.log(`✅ Nazuna aprendeu info pessoal de ${grupoUserId}: ${campo} = "${valor}"`);
+          console.log(`✅ TOM aprendeu info pessoal de ${grupoUserId}: ${campo} = "${valor}"`);
         } else {
           // Se não souber o campo, adicionar como nota importante
           userContextDB.addImportantNote(grupoUserId, valor);
-          console.log(`✅ Nazuna anotou info pessoal: "${valor}" sobre ${grupoUserId}`);
+          console.log(`✅ TOM anotou info pessoal: "${valor}" sobre ${grupoUserId}`);
         }
         break;
         
@@ -2170,7 +2170,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
         userContext.padroes_comportamento.humor_comum = valor;
         userContextDB.data[grupoUserId] = userContext;
         userContextDB.saveDatabase();
-        console.log(`✅ Nazuna percebeu o humor de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM percebeu o humor de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'estilo_conversa':
@@ -2181,7 +2181,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
         userCtx.preferencias.estilo_conversa = valor;
         userContextDB.data[grupoUserId] = userCtx;
         userContextDB.saveDatabase();
-        console.log(`✅ Nazuna identificou estilo de conversa de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM identificou estilo de conversa de ${grupoUserId}: "${valor}"`);
         break;
         
       // NOVOS TIPOS DE APRENDIZADO
@@ -2194,7 +2194,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'aspiracao':
       case 'aspiração':
         userContextDB.addImportantNote(grupoUserId, `[SONHO/OBJETIVO] ${valor}`);
-        console.log(`✅ Nazuna anotou sonho/objetivo de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sonho/objetivo de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'medo':
@@ -2203,7 +2203,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'fobias':
       case 'receio':
         userContextDB.addImportantNote(grupoUserId, `[MEDO] ${valor}`);
-        console.log(`✅ Nazuna anotou medo de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou medo de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'rotina':
@@ -2211,7 +2211,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'hábito':
       case 'costume':
         userContextDB.addImportantNote(grupoUserId, `[ROTINA] ${valor}`);
-        console.log(`✅ Nazuna anotou rotina de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou rotina de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'pet':
@@ -2219,7 +2219,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'animal_estimacao':
       case 'animal_de_estimação':
         userContextDB.addImportantNote(grupoUserId, `[PET] ${valor}`);
-        console.log(`✅ Nazuna anotou sobre pet de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sobre pet de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'musica':
@@ -2228,7 +2228,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'banda':
       case 'artista':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[MÚSICA] ${valor}`);
-        console.log(`✅ Nazuna anotou gosto musical de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou gosto musical de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'filme':
@@ -2237,7 +2237,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'série':
       case 'anime':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[FILME/SÉRIE] ${valor}`);
-        console.log(`✅ Nazuna anotou filme/série favorito de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou filme/série favorito de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'jogo':
@@ -2245,7 +2245,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'game':
       case 'games':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[JOGO] ${valor}`);
-        console.log(`✅ Nazuna anotou jogo favorito de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou jogo favorito de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'comida':
@@ -2254,21 +2254,21 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'culinaria':
       case 'culinária':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[COMIDA] ${valor}`);
-        console.log(`✅ Nazuna anotou comida favorita de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou comida favorita de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'bebida':
       case 'bebida_favorita':
       case 'drink':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[BEBIDA] ${valor}`);
-        console.log(`✅ Nazuna anotou bebida favorita de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou bebida favorita de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'cor':
       case 'cor_favorita':
       case 'cores':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[COR] ${valor}`);
-        console.log(`✅ Nazuna anotou cor favorita de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou cor favorita de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'esporte':
@@ -2277,7 +2277,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'time_futebol':
       case 'clube':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[ESPORTE] ${valor}`);
-        console.log(`✅ Nazuna anotou sobre esporte de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sobre esporte de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'livro':
@@ -2285,7 +2285,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'autor':
       case 'leitura':
         userContextDB.addUserPreference(grupoUserId, 'gostos', `[LIVRO] ${valor}`);
-        console.log(`✅ Nazuna anotou livro favorito de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou livro favorito de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'viagem':
@@ -2293,7 +2293,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'lugar_visitado':
       case 'destino':
         userContextDB.addImportantNote(grupoUserId, `[VIAGEM] ${valor}`);
-        console.log(`✅ Nazuna anotou sobre viagem de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sobre viagem de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'estudo':
@@ -2304,7 +2304,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'formacao':
       case 'formação':
         userContextDB.updatePersonalInfo(grupoUserId, 'profissao', `${valor} (estudante)`);
-        console.log(`✅ Nazuna anotou sobre estudos de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sobre estudos de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'idioma':
@@ -2312,7 +2312,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'lingua':
       case 'língua':
         userContextDB.addImportantNote(grupoUserId, `[IDIOMA] ${valor}`);
-        console.log(`✅ Nazuna anotou idioma de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou idioma de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'talento':
@@ -2320,7 +2320,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'skill':
       case 'dom':
         userContextDB.addImportantNote(grupoUserId, `[TALENTO] ${valor}`);
-        console.log(`✅ Nazuna anotou talento de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou talento de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'problema':
@@ -2329,7 +2329,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'preocupacao':
       case 'preocupação':
         userContextDB.addImportantNote(grupoUserId, `[PROBLEMA] ${valor}`);
-        console.log(`✅ Nazuna anotou preocupação de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou preocupação de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'conquista':
@@ -2347,14 +2347,14 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'data_nascimento':
       case 'birthday':
         userContextDB.addImportantNote(grupoUserId, `[ANIVERSÁRIO] ${valor}`);
-        console.log(`✅ Nazuna anotou aniversário de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou aniversário de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'signo':
       case 'zodiaco':
       case 'zodíaco':
         userContextDB.addImportantNote(grupoUserId, `[SIGNO] ${valor}`);
-        console.log(`✅ Nazuna anotou signo de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou signo de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'personalidade':
@@ -2362,7 +2362,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'caracteristica':
       case 'característica':
         userContextDB.addImportantNote(grupoUserId, `[PERSONALIDADE] ${valor}`);
-        console.log(`✅ Nazuna anotou sobre personalidade de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sobre personalidade de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'saude':
@@ -2371,7 +2371,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'condição':
       case 'alergia':
         userContextDB.addImportantNote(grupoUserId, `[SAÚDE] ${valor}`);
-        console.log(`✅ Nazuna anotou sobre saúde de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou sobre saúde de ${grupoUserId}: "${valor}"`);
         break;
         
       case 'plano':
@@ -2380,7 +2380,7 @@ function processLearning(grupoUserId, aprender, mensagemOriginal) {
       case 'intenção':
       case 'futuro':
         userContextDB.addImportantNote(grupoUserId, `[PLANOS] ${valor}`);
-        console.log(`✅ Nazuna anotou planos de ${grupoUserId}: "${valor}"`);
+        console.log(`✅ TOM anotou planos de ${grupoUserId}: "${valor}"`);
         break;
         
       default:

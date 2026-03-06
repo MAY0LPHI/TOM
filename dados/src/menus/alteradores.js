@@ -1,11 +1,11 @@
 export default async function menuAlterador(prefix, botName = "MeuBot", userName = "Usuário", {
-    header = `╭┈⊰ 🌸 『 *${botName}* 』\n┊Olá, #user#!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-    menuTopBorder = "╭┈",
-    bottomBorder = "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-    menuTitleIcon = "🍧ฺꕸ▸",
-    menuItemIcon = "•.̇𖥨֗🍓⭟",
-    separatorIcon = "❁",
-    middleBorder = "┊",
+    header = `╔══「 💀 *${botName}* 💀 」══╗\n║  👾 *#user#*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+    menuTopBorder = "╔══",
+    bottomBorder = "╚══[ ⚡ FIM DO LOG ]══╝",
+    menuTitleIcon = "🖥️",
+    menuItemIcon = "  ⌨️  ",
+    separatorIcon = "💾",
+    middleBorder = "║",
     videoMenuTitle = "🎬 EFEITOS DE VÍDEO",
     audioMenuTitle = "🎵 EFEITOS DE ÁUDIO",
     imageMenuTitle = "🖼️ ALTERAR IMAGEM"

@@ -1,11 +1,11 @@
 async function menuDono(prefix, botName = "MeuBot", userName = "Usuário", {
-    header = `╭┈⊰ 🌸 『 *${botName}* 』\n┊Olá, #user#!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-    menuTopBorder = "╭┈",
-    bottomBorder = "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-    menuTitleIcon = "🍧ฺꕸ▸",
-    menuItemIcon = "•.̇𖥨֗🍓⭟",
-    separatorIcon = "❁",
-    middleBorder = "┊",
+    header = `╔══「 💀 *${botName}* 💀 」══╗\n║  👾 *#user#*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+    menuTopBorder = "╔══",
+    bottomBorder = "╚══[ ⚡ FIM DO LOG ]══╝",
+    menuTitleIcon = "🖥️",
+    menuItemIcon = "  ⌨️  ",
+    separatorIcon = "💾",
+    middleBorder = "║",
     botConfigMenuTitle = "🤖 CONFIGURAÇÕES DO BOT",
     menuDesignMenuTitle = "🎨 DESIGN & APARÊNCIA",
     automationMenuTitle = "⚙️ SISTEMA & AUTOMAÇÃO",
@@ -171,6 +171,7 @@ ${bottomBorder}
 ${menuTopBorder}${separatorIcon} *${monitoringMenuTitle}*
 ${middleBorder}
 ${middleBorder}${menuItemIcon}${prefix}listagp
+${middleBorder}${menuItemIcon}${prefix}antigp
 ${middleBorder}${menuItemIcon}${prefix}antipv
 ${middleBorder}${menuItemIcon}${prefix}antipv2
 ${middleBorder}${menuItemIcon}${prefix}antipv3

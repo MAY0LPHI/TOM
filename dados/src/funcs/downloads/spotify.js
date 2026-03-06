@@ -1,9 +1,10 @@
 /**
- * Spotify Download - Implementação direta sem API externa
- * Usa nayan-video-downloader para busca e spotisaver.net para download
+ * Spotify Download - via API local (yt-dlp)
+ * Fallback: nayan-video-downloader + spotisaver.net
  */
 
 import axios from 'axios';
+import { spotifyDownload as localSpDownload, spotifySearch as localSpSearch } from '../../../local-api/downloads.js';
 
 const SEARCH_BASE_URL = 'https://nayan-video-downloader.vercel.app';
 const DOWNLOAD_BASE_URL = 'https://spotisaver.net';
@@ -100,17 +101,21 @@ async function search(query, limit = 10) {
 async function download(url) {
   try {
     if (!url || !url.includes('spotify.com')) {
-      return {
-        ok: false,
-        msg: 'URL inválida do Spotify'
-      };
+      return { ok: false, msg: 'URL inválida do Spotify' };
     }
 
-    // Verificar cache
     const cached = getCached(`download:${url}`);
     if (cached) return cached;
 
-    // Extrair ID da track
+    console.log('[Spotify] Tentando via API local (yt-dlp)...');
+    const local = await localSpDownload(url);
+    if (local.ok) {
+      console.log('[Spotify] Download local concluído:', local.title);
+      setCache(`download:${url}`, local);
+      return local;
+    }
+    console.log('[Spotify] Local falhou, usando fallback externo:', local.msg);
+
     const trackId = extractTrackId(url);
     if (!trackId) {
       return {

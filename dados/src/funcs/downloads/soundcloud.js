@@ -1,10 +1,11 @@
 /**
- * SoundCloud Download - Implementação direta sem API externa
- * Usa nayan-video-downloader como fonte
+ * SoundCloud Download - via API local (yt-dlp)
+ * Fallback: nayan-video-downloader
  */
 
 import axios from 'axios';
 import { mediaClient } from '../../utils/httpClient.js';
+import { soundcloudDownload as localScDownload } from '../../../local-api/downloads.js';
 
 const BASE_URL = 'https://nayan-video-downloader.vercel.app';
 
@@ -37,9 +38,17 @@ function setCache(key, val) {
  */
 async function download(url) {
   try {
-    // Verificar cache
     const cached = getCached(`download:${url}`);
     if (cached) return cached;
+
+    console.log('[SoundCloud] Tentando via API local (yt-dlp)...');
+    const local = await localScDownload(url);
+    if (local.ok) {
+      console.log('[SoundCloud] Download local concluído:', local.title);
+      setCache(`download:${url}`, local);
+      return local;
+    }
+    console.log('[SoundCloud] Local falhou, usando fallback externo:', local.msg);
 
     const response = await axios.get(`${BASE_URL}/soundcloud`, {
       params: { url },

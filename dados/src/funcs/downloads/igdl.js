@@ -1,10 +1,11 @@
 /**
- * Instagram Download - Implementação direta sem API externa
- * Usa nayan-video-downloader como fonte
+ * Instagram Download - via API local (yt-dlp)
+ * Fallback: nayan-video-downloader
  */
 
 import axios from 'axios';
 import { mediaClient } from '../../utils/httpClient.js';
+import { instagramDownload as localIgDownload } from '../../../local-api/downloads.js';
 
 const BASE_URL = 'https://nayan-video-downloader.vercel.app/ndown';
 
@@ -38,15 +39,20 @@ function setCache(key, val) {
 async function dl(url) {
   try {
     if (!url || typeof url !== 'string' || url.trim().length === 0) {
-      return {
-        ok: false,
-        msg: 'URL inválida'
-      };
+      return { ok: false, msg: 'URL inválida' };
     }
 
-    // Verificar cache
     const cached = getCached(`download:${url}`);
     if (cached) return { ok: true, ...cached, cached: true };
+
+    console.log('[Instagram] Tentando via API local (yt-dlp)...');
+    const local = await localIgDownload(url);
+    if (local.ok) {
+      console.log('[Instagram] Download local concluído:', local.count, 'mídia(s)');
+      setCache(`download:${url}`, { data: local.data, count: local.count, criador: local.criador });
+      return local;
+    }
+    console.log('[Instagram] Local falhou, usando fallback externo:', local.msg);
 
     const response = await axios.get(`${BASE_URL}?url=${encodeURIComponent(url)}`, {
       timeout: 120000

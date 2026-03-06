@@ -1,19 +1,13 @@
 /**
  * YouTube Download - Sistema de Fila Rotativa com Múltiplas Fontes
- * Implementação direta sem dependência de API externa (cog.api.br)
- * NÃO usa yt-dlp - apenas APIs web
- * 
- * Fontes disponíveis (em ordem de prioridade):
- * - Nayan Video Downloader
- * - Adonix (ytmp3.mobi)
- * - OceanSaver
- * - Y2mate
- * - SaveTube
+ * Fonte primária: yt-dlp (local)
+ * Fallback: Nayan, Adonix, OceanSaver, Y2mate, SaveTube
  */
 
 import axios from 'axios';
 import { createDecipheriv } from 'crypto';
 import yts from 'yt-search';
+import { ytDownload as localYtDownload, ytInfo as localYtInfo, ytSearch as localYtSearch } from '../../../local-api/downloads.js';
 
 // ============================================
 // CONFIGURAÇÕES
@@ -37,7 +31,7 @@ const CONFIG = {
 const providerState = {
   cooldowns: new Map(),      // provider -> timestamp até quando está em cooldown
   failureCounts: new Map(),  // provider -> número de falhas consecutivas
-  methodOrder: ['nayan', 'adonix', 'oceansaver', 'y2mate', 'savetube'] // ordem dinâmica
+  methodOrder: ['ytdlp', 'nayan', 'adonix', 'oceansaver', 'y2mate', 'savetube'] // ordem dinâmica
 };
 
 // Cache simples
@@ -166,6 +160,26 @@ function analyzeError(errorMessage) {
     rateLimit: msg.includes('rate') || msg.includes('429') || msg.includes('too many'),
     geoBlock: msg.includes('geo') || msg.includes('country') || msg.includes('region')
   };
+}
+
+// ============================================
+// PROVIDER: YT-DLP (LOCAL - PRIMÁRIO)
+// ============================================
+
+async function downloadWithYtdlp(url, format = 'mp3') {
+  try {
+    console.log(`🖥️ [yt-dlp] Baixando ${format}...`);
+    const result = await localYtDownload(url, format === 'mp3' ? 'audio' : 'video', '720');
+    if (!result.ok) return { success: false, error: result.msg, source: 'ytdlp' };
+    return {
+      success: true,
+      buffer: result.buffer,
+      filename: result.filename,
+      source: 'ytdlp'
+    };
+  } catch (err) {
+    return { success: false, error: err.message, source: 'ytdlp' };
+  }
 }
 
 // ============================================
@@ -598,8 +612,9 @@ async function downloadWithSavetube(url, format = 'mp3') {
 
 async function downloadWithFallbacks(url, format = 'mp3') {
   const providers = {
+    ytdlp: () => downloadWithYtdlp(url, format),
     nayan: () => downloadWithNayan(url, format),
-    adonix: () => downloadWithAdonix(url), // Adonix só suporta mp3
+    adonix: () => downloadWithAdonix(url),
     oceansaver: () => downloadWithOceanSaver(url, format),
     y2mate: () => downloadWithY2mate(url, format),
     savetube: () => downloadWithSavetube(url, format)

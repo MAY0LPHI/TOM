@@ -1,10 +1,11 @@
 /**
- * Facebook Download - Implementação direta sem API externa
- * Usa nayan-video-downloader como fonte
+ * Facebook Download - via API local (yt-dlp)
+ * Fallback: nayan-video-downloader
  */
 
 import axios from 'axios';
 import { mediaClient } from '../../utils/httpClient.js';
+import { facebookDownload as localFbDownload } from '../../../local-api/downloads.js';
 
 const BASE_URL = 'https://nayan-video-downloader.vercel.app';
 
@@ -37,9 +38,17 @@ function setCache(key, val) {
  */
 async function downloadHD(url) {
   try {
-    // Verificar cache
     const cached = getCached(`download:${url}`);
     if (cached) return cached;
+
+    console.log('[Facebook] Tentando via API local (yt-dlp)...');
+    const local = await localFbDownload(url);
+    if (local.ok) {
+      console.log('[Facebook] Download local concluído');
+      setCache(`download:${url}`, local);
+      return local;
+    }
+    console.log('[Facebook] Local falhou, usando fallback externo:', local.msg);
 
     const response = await axios.get(`${BASE_URL}/ndown`, {
       params: { url },

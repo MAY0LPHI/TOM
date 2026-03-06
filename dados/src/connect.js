@@ -1320,7 +1320,7 @@ async function startNazu() {
     try {
         reconnectAttempts = 0; // Reset contador ao conectar com sucesso
         forbidden403Attempts = 0; // Reset contador de erro 403
-        console.log('🚀 Iniciando Nazuna...');
+        console.log('🚀 Iniciando TOM...');
 
         await createBotSocket(AUTH_DIR);
         isReconnecting = false; // Conexão estabelecida com sucesso
