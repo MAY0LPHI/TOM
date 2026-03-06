@@ -114,13 +114,13 @@ ensureJsonFileExists(DONO_DIVULGACAO_FILE, {
   createdAt: new Date().toISOString()
 });
 ensureJsonFileExists(MENU_DESIGN_FILE, {
-  header: `╭┈⊰ 🌸 『 *{botName}* 』\n┊Olá, {userName}!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-  menuTopBorder: "╭┈",
-  bottomBorder: "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-  menuTitleIcon: "🍧ฺꕸ▸",
-  menuItemIcon: "•.̇𖥨֗🍓⭟",
-  separatorIcon: "❁",
-  middleBorder: "┊"
+  header: `╔══「 💀 *{botName}* 💀 」══╗\n║  👾 *{userName}*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+  menuTopBorder: "╔══",
+  bottomBorder: "╚══[ ⚡ FIM DO LOG ]══╝",
+  menuTitleIcon: "🖥️",
+  menuItemIcon: "  ⌨️  ",
+  separatorIcon: "💾",
+  middleBorder: "║"
 });
 ensureJsonFileExists(ECONOMY_FILE, {
   users: {},
@@ -2704,25 +2704,25 @@ const loadMenuDesign = () => {
       return JSON.parse(fs.readFileSync(MENU_DESIGN_FILE, 'utf-8'));
     } else {
       return {
-        header: `╭┈⊰ 🌸 『 *{botName}* 』\n┊Olá, {userName}!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-        menuTopBorder: "╭┈",
-        bottomBorder: "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-        menuTitleIcon: "🍧ฺꕸ▸",
-        menuItemIcon: "•.̇𖥨֗🍓⭟",
-        separatorIcon: "❁",
-        middleBorder: "┊"
+        header: `╔══「 💀 *{botName}* 💀 」══╗\n║  👾 *{userName}*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+        menuTopBorder: "╔══",
+        bottomBorder: "╚══[ ⚡ FIM DO LOG ]══╝",
+        menuTitleIcon: "🖥️",
+        menuItemIcon: "  ⌨️  ",
+        separatorIcon: "💾",
+        middleBorder: "║"
       };
     }
   } catch (error) {
     console.error(`❌ Erro ao carregar design do menu: ${error.message}`);
     return {
-      header: `╭┈⊰ 🌸 『 *{botName}* 』\n┊Olá, {userName}!\n╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯`,
-      menuTopBorder: "╭┈",
-      bottomBorder: "╰─┈┈┈┈┈◜❁◞┈┈┈┈┈─╯",
-      menuTitleIcon: "🍧ฺꕸ▸",
-      menuItemIcon: "•.̇𖥨֗🍓⭟",
-      separatorIcon: "❁",
-      middleBorder: "┊"
+      header: `╔══「 💀 *{botName}* 💀 」══╗\n║  👾 *{userName}*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
+      menuTopBorder: "╔══",
+      bottomBorder: "╚══[ ⚡ FIM DO LOG ]══╝",
+      menuTitleIcon: "🖥️",
+      menuItemIcon: "  ⌨️  ",
+      separatorIcon: "💾",
+      middleBorder: "║"
     };
   }
 };
