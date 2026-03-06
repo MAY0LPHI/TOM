@@ -1,33 +1,47 @@
-# 💀 TOM Bot — WhatsApp Bot
+<div align="center">
 
-Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a biblioteca **Baileys**, hospedado no **Replit**. Conta com mais de **1.600 comandos** distribuídos em categorias de administração, entretenimento, IA, RPG, downloads e muito mais.
+<img src="dados/midias/menu.jpg" alt="TOM Bot Banner" width="700" style="border-radius: 16px"/>
+
+# 💀 TOM Bot
+
+**Bot de WhatsApp avançado e multifuncional**  
+Desenvolvido em **Node.js** com **Baileys** · Hospedado no **Replit**
+
+![Status](https://img.shields.io/badge/STATUS-ATIVO-00ff41?style=flat-square&logo=whatsapp)
+![Node](https://img.shields.io/badge/Node.js-18%2B-339933?style=flat-square&logo=node.js)
+![Comandos](https://img.shields.io/badge/Comandos-1600%2B-00ff41?style=flat-square)
+![IA](https://img.shields.io/badge/IA-Gemini%202.5-4285F4?style=flat-square&logo=google)
+![Prefixo](https://img.shields.io/badge/Prefixo-.-ffffff?style=flat-square)
+
+</div>
 
 ---
 
-## 📋 Índice
+## 📋 Navegação Rápida
 
-1. [Configuração](#-configuração)
-2. [Conectando ao WhatsApp](#-conectando-ao-whatsapp)
-3. [Estrutura do Projeto](#-estrutura-do-projeto)
-4. [Comandos — Dono](#-comandos--dono)
-5. [Comandos — Administração de Grupo](#-comandos--administração-de-grupo)
-6. [Comandos — Figurinhas](#-comandos--figurinhas)
-7. [Comandos — Inteligência Artificial](#-comandos--inteligência-artificial)
-8. [Comandos — Downloads](#-comandos--downloads)
-9. [Comandos — Brincadeiras](#-comandos--brincadeiras)
-10. [Comandos — RPG](#-comandos--rpg)
-11. [Comandos — Ferramentas](#-comandos--ferramentas)
-12. [Comandos — Alteradores de Mídia](#-comandos--alteradores-de-mídia)
-13. [Comandos — Buscas e Consultas](#-comandos--buscas-e-consultas)
-14. [Comandos — Membros](#-comandos--membros)
-15. [Recursos Especiais](#-recursos-especiais)
-16. [Solução de Problemas](#-solução-de-problemas)
+> Clique em qualquer seção abaixo para expandir os comandos.
+
+- [⚙️ Configuração](#%EF%B8%8F-configuração)
+- [📱 Conectando ao WhatsApp](#-conectando-ao-whatsapp)
+- [📁 Estrutura do Projeto](#-estrutura-do-projeto)
+- [👑 Comandos do Dono](#-comandos-do-dono)
+- [🛡️ Administração de Grupo](#%EF%B8%8F-administração-de-grupo)
+- [🎨 Figurinhas](#-figurinhas)
+- [🤖 Inteligência Artificial](#-inteligência-artificial)
+- [⬇️ Downloads](#%EF%B8%8F-downloads)
+- [🎉 Brincadeiras](#-brincadeiras)
+- [⚔️ RPG](#%EF%B8%8F-rpg)
+- [🔧 Ferramentas](#-ferramentas)
+- [🎬 Alteradores de Mídia](#-alteradores-de-mídia)
+- [🔍 Buscas e Consultas](#-buscas-e-consultas)
+- [👤 Membros](#-membros)
+- [✨ Recursos Especiais](#-recursos-especiais)
 
 ---
 
 ## ⚙️ Configuração
 
-**Arquivo principal:** `dados/src/config.json`
+**Arquivo:** `dados/src/config.json`
 
 ```json
 {
@@ -38,15 +52,18 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 }
 ```
 
-**Secrets no Replit (obrigatório):**
+**Secrets no Replit:**
 
-| Secret | Uso |
-|--------|-----|
-| `GEMINI_API_KEY` | IA SimSimi, assistente e modelos Gemini |
+| Secret | Obrigatório | Uso |
+|--------|-------------|-----|
+| `GEMINI_API_KEY` | ✅ | IA SimSimi, assistente, modelos Gemini |
 
 ---
 
 ## 📱 Conectando ao WhatsApp
+
+<details>
+<summary><strong>🔍 Clique para ver os métodos de conexão</strong></summary>
 
 ### Via QR Code
 1. Inicie o bot com `npm start`
@@ -54,54 +71,62 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 3. WhatsApp → **Configurações → Aparelhos Conectados → Conectar um Aparelho**
 
 ### Via Código de Pareamento
-1. Execute `npm start` e informe o número quando solicitado
-2. Receba um código (ex: `1234-5678`) no console
+1. Execute `npm start` e informe o número do bot quando solicitado
+2. O console exibirá um código (ex: `1234-5678`)
 3. WhatsApp → **Configurações → Aparelhos Conectados → Conectar com Número de Telefone**
 
-> ⚠️ Sempre use um número **secundário e dedicado** ao bot.
+> ⚠️ Sempre use um número **secundário e dedicado** ao bot. Não use seu número pessoal.
+
+</details>
 
 ---
 
 ## 📁 Estrutura do Projeto
 
+<details>
+<summary><strong>🗂️ Clique para ver a estrutura de arquivos</strong></summary>
+
 ```
 /
 ├── dados/
 │   ├── src/
-│   │   ├── index.js              # Core principal do bot (~32.000 linhas)
+│   │   ├── index.js              # Core principal (~32.000 linhas)
 │   │   ├── config.json           # Nome, prefixo, dono
 │   │   ├── menus/                # Menus por categoria
 │   │   │   ├── menu.js           # Menu principal
-│   │   │   ├── menuadm.js        # Menu de administração
-│   │   │   ├── menudono.js       # Menu do dono
-│   │   │   ├── menubn.js         # Menu de brincadeiras
-│   │   │   ├── menudown.js       # Menu de downloads
-│   │   │   ├── menuia.js         # Menu de IA
-│   │   │   ├── menufig.js        # Menu de figurinhas
-│   │   │   ├── menumemb.js       # Menu de membros
-│   │   │   ├── menurpg.js        # Menu de RPG
-│   │   │   ├── menubuscas.js     # Menu de buscas
-│   │   │   ├── ferramentas.js    # Menu de ferramentas
-│   │   │   └── alteradores.js    # Menu de alteradores
+│   │   │   ├── menuadm.js        # Administração
+│   │   │   ├── menudono.js       # Dono
+│   │   │   ├── menubn.js         # Brincadeiras
+│   │   │   ├── menudown.js       # Downloads
+│   │   │   ├── menuia.js         # Inteligência Artificial
+│   │   │   ├── menufig.js        # Figurinhas
+│   │   │   ├── menumemb.js       # Membros
+│   │   │   ├── menurpg.js        # RPG
+│   │   │   ├── menubuscas.js     # Buscas
+│   │   │   ├── ferramentas.js    # Ferramentas
+│   │   │   └── alteradores.js    # Alteradores de mídia
 │   │   └── funcs/
 │   │       ├── downloads/        # YouTube, TikTok, etc.
 │   │       ├── private/          # IA, funções internas
-│   │       └── utils/            # Utilitários gerais
+│   │       └── utils/            # Utilitários
 │   ├── database/
-│   │   ├── grupos/               # Dados por grupo (JSON)
-│   │   └── dono/                 # Configs do dono (menu design, etc.)
+│   │   ├── grupos/               # Dados por grupo (.json)
+│   │   └── dono/                 # Configs do dono
 │   └── local-api/                # API local (stickers, downloads)
 ├── package.json
 └── README.md
 ```
 
+</details>
+
 ---
 
-## 👑 Comandos — Dono
+## 👑 Comandos do Dono
 
-> Todos os comandos abaixo são exclusivos do dono do bot.
+> Exclusivos do dono do bot. Funcionam em qualquer lugar.
 
-### 🔧 Gestão do Bot
+<details>
+<summary><strong>🔧 Gestão do Bot — nome, foto, prefixo, reiniciar</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
@@ -114,34 +139,44 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.atualizar` | Atualiza o bot |
 | `.botoff` / `.boton` | Desliga/liga o bot globalmente |
 | `.nuke` | Limpa dados do bot |
+| `.reviverqr` | Regera o QR code |
 
-### 🛡️ Anti & Controle de Acesso
+</details>
+
+<details>
+<summary><strong>🛡️ Anti & Controle de Acesso — antigp, antipv, bloqueios</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.antigp` | Ativa/desativa ignorar todos os comandos em um grupo |
+| `.antigp` | Ignora **todos** os comandos em um grupo específico |
 | `.antipv` | Ignora completamente mensagens no privado |
-| `.antipv2` | Responde que comandos só funcionam em grupos |
+| `.antipv2` | Avisa que comandos só funcionam em grupos |
 | `.antipv3` | Bloqueia usuários que usam comandos no privado |
 | `.antipv4` | Avisa que o bot só funciona em grupos |
 | `.antipvmsg [texto]` | Define a mensagem do antipv |
 | `.antispamcmd` | Proteção anti-spam de comandos |
-| `.antibanmarcar` | Protege o bot de ser marcado para ban |
+| `.antibanmarcar` | Protege o bot de marcações para ban |
 
-### 📋 Gestão de Grupos
+</details>
+
+<details>
+<summary><strong>📋 Gestão de Grupos — entrar, sair, banir grupos</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.listagp` | Lista todos os grupos onde o bot está |
+| `.listagp` | Lista todos os grupos do bot |
 | `.sairgp [id]` | Remove o bot de um grupo |
 | `.bangp [id]` | Bane um grupo da lista |
 | `.unbangp [id]` | Desbane um grupo |
 | `.listbangp` | Lista grupos banidos |
 | `.entrar [link]` | Entra em um grupo via convite |
-| `.banghost` | Bane o grupo se o dono não for admin |
+| `.banghost` | Bane grupo se o dono não for admin |
 | `.personalizargrupo` | Personaliza configurações do grupo |
 
-### 💎 Sistema VIP & Premium
+</details>
+
+<details>
+<summary><strong>💎 VIP, Premium & Aluguel — assinaturas e monetização</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
@@ -151,16 +186,21 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.infovip` | Informações do sistema VIP |
 | `.statsvip` | Estatísticas VIP |
 | `.menuvip` | Exibe menu VIP |
-| `.addcmdvip [cmd]` | Adiciona comando como VIP |
-| `.removecmdvip [cmd]` | Remove comando VIP |
+| `.addcmdvip [cmd]` | Marca comando como VIP |
+| `.removecmdvip [cmd]` | Remove restrição VIP |
 | `.listcmdvip` | Lista comandos VIP |
-| `.togglecmdvip [cmd]` | Ativa/desativa comando VIP |
+| `.togglecmdvip [cmd]` | Ativa/desativa restrição VIP |
 | `.addaluguel` | Adiciona aluguel de bot |
 | `.removeraluguel` | Remove aluguel |
-| `.listaluguel` | Lista aluguéis |
+| `.listaluguel` | Lista aluguéis ativos |
 | `.modoaluguel` | Configura modo aluguel |
+| `.dayfree` | Concede acesso gratuito temporário |
+| `.estenderaluguel` | Estende prazo de aluguel |
 
-### 🤖 Sub-bots & Indicações
+</details>
+
+<details>
+<summary><strong>🤖 Sub-bots & Indicações — rede de bots</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
@@ -171,134 +211,152 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.addsubdono` | Adiciona sub-dono |
 | `.delsubdono` | Remove sub-dono |
 | `.listasubdonos` | Lista sub-donos |
-| `.addindicacao` | Adiciona indicação |
+| `.addindicacao` | Adiciona sistema de indicação |
 | `.delindicacao` | Remove indicação |
 | `.topindica` | Ranking de indicações |
 
-### 🎨 Design do Menu
+</details>
+
+<details>
+<summary><strong>🎨 Design do Menu — personalização visual completa</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.designmenu` | Configura design do menu |
-| `.resetdesign` | Reseta o design para padrão |
-| `.setheader [texto]` | Define o cabeçalho |
-| `.setitem [texto]` | Define o ícone de item |
-| `.setseparador [texto]` | Define o separador |
+| `.designmenu` | Painel de configuração do design |
+| `.resetdesign` | Reseta para o design padrão |
+| `.setheader [texto]` | Define o cabeçalho do menu |
+| `.setitem [char]` | Define o ícone de item |
+| `.setseparador [char]` | Define o separador de seção |
 | `.settitulo [texto]` | Define o título |
-| `.setborda [char]` | Define a borda |
+| `.setborda [char]` | Define a borda superior |
 | `.setbordameio [char]` | Define a borda do meio |
-| `.setbordafim [char]` | Define a borda do fim |
+| `.setbordafim [char]` | Define a borda inferior |
 | `.setdiv [char]` | Define o divisor |
-| `.audiomenu` | Configura menu de áudio |
-| `.videomenu` | Configura menu de vídeo |
-| `.fotomenu` | Configura foto do menu |
+| `.audiomenu` | Define áudio do menu |
+| `.videomenu` | Define vídeo do menu |
+| `.fotomenu` | Define foto do menu |
 
-### 🔒 Bloqueios Globais
+</details>
+
+<details>
+<summary><strong>🔒 Bloqueios Globais — comandos e usuários banidos</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.blockcmdg [cmd]` | Bloqueia comando globalmente |
-| `.unblockcmdg [cmd]` | Desbloqueia comando |
-| `.listblocks` | Lista bloqueios globais |
+| `.blockcmdg [cmd]` | Bloqueia um comando em todos os grupos |
+| `.unblockcmdg [cmd]` | Desbloqueia o comando |
+| `.listblocks` | Lista todos os bloqueios globais |
 | `.blockuserg @user` | Bloqueia usuário globalmente |
 | `.unblockuserg @user` | Desbloqueia usuário |
 | `.addblackglobal @user` | Adiciona à blacklist global |
 | `.rmblackglobal @user` | Remove da blacklist global |
-| `.listblackglobal` | Lista blacklist global |
+| `.listblackglobal` | Lista a blacklist global |
 
-### 📊 Monitoramento & Diagnóstico
+</details>
+
+<details>
+<summary><strong>📊 Monitoramento & Diagnóstico — status e logs</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.viewmsg` | Visualiza mensagens |
+| `.viewmsg` | Visualiza mensagens em tempo real |
 | `.cases` | Lista casos registrados |
 | `.getcase [id]` | Detalhes de um caso |
-| `.statustm` | Status do bot |
+| `.statustm` | Status completo do bot |
 | `.tm` / `.tm2` | Informações técnicas |
 | `.ping` | Latência do bot |
 | `.limpardb` | Limpa o banco de dados |
-| `.limparrankg` | Limpa rank global |
-| `.modoliteglobal` | Ativa/desativa modo lite global |
+| `.limparrankg` | Limpa ranking global |
+| `.modoliteglobal` | Ativa/desativa modo lite globalmente |
 | `.iaclear` | Limpa histórico da IA |
 
-### ⚡ Comandos Personalizados
+</details>
+
+<details>
+<summary><strong>⚡ Comandos Personalizados — crie seus próprios comandos</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.addcmd [nome] [resposta]` | Cria comando personalizado |
-| `.addcmdmidia [nome]` | Cria comando de mídia |
-| `.delcmd [nome]` | Remove comando personalizado |
-| `.listcmd` | Lista comandos criados |
+| `.addcmd [nome] [resposta]` | Cria um comando personalizado |
+| `.addcmdmidia [nome]` | Cria comando com mídia |
+| `.delcmd [nome]` | Remove um comando |
+| `.listcmd` | Lista todos os comandos criados |
 | `.testcmd [nome]` | Testa um comando |
 | `.setcmdmsg [cmd] [msg]` | Define mensagem do comando |
 | `.configcmdnotfound [msg]` | Mensagem de comando não encontrado |
-| `.cmdlimitar [cmd] [n]` | Limita usos de um comando |
-| `.cmddeslimitar [cmd]` | Remove limite |
+| `.cmdlimitar [cmd] [n]` | Limita usos por usuário |
+| `.cmddeslimitar [cmd]` | Remove o limite |
 | `.cmdlimites` | Lista limites configurados |
 
-**Flags suportadas:** `[owner]`, `[admin]`, `[group]`, `[private]`  
-**Parâmetros:** `[param:string:nome:required]`, `[param:number:qtd:optional]`, `[param:enum:tipo:required:enum=a|b|c]`
+**Flags:** `[owner]` `[admin]` `[group]` `[private]`  
+**Parâmetros:** `[param:string:nome:required]` · `[param:number:qtd:optional]` · `[param:enum:tipo:required:enum=a|b|c]`  
+**Placeholders:** `{nome}` `{grupo}` `{velocidade}` `{groupdesc}`
+
+</details>
 
 ---
 
-## 🛡️ Comandos — Administração de Grupo
+## 🛡️ Administração de Grupo
 
-> Requerem que o usuário seja **administrador** do grupo.
+> Comandos para quem é **administrador** do grupo.
 
-### 👥 Gestão de Usuários
+<details>
+<summary><strong>👥 Gestão de Usuários — ban, adv, mute, promover</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.ban @user` | Bane um usuário |
+| `.ban @user` | Bane um usuário do grupo |
 | `.ban2 @user` | Bane em modo silencioso |
-| `.bam @user` | Bane com aviso |
+| `.bam @user` | Bane com aviso personalizado |
 | `.adv @user [motivo]` | Dá advertência |
 | `.rmadv @user` | Remove advertência |
-| `.listadv` | Lista advertências |
-| `.mute @user` | Muta um usuário (ban automático ao falar) |
+| `.listadv` | Lista advertências do grupo |
+| `.mute @user` | Muta (ban automático ao falar) |
 | `.mute2 @user` | Muta sem ban automático |
-| `.desmute @user` | Desmuta |
-| `.desmute2 @user` | Desmuta modo 2 |
-| `.promover @user` | Promove a admin |
-| `.rebaixar @user` | Rebaixa de admin |
+| `.desmute @user` | Desmuta usuário |
+| `.promover @user` | Promove a administrador |
+| `.rebaixar @user` | Rebaixa de administrador |
 | `.marcar` | Marca todos os membros |
-| `.hidetag [msg]` | Marca todos sem aparecer os nomes |
+| `.hidetag [msg]` | Marca todos sem exibir nomes |
 | `.addblacklist @user` | Adiciona à blacklist do grupo |
 | `.delblacklist @user` | Remove da blacklist |
-| `.listblacklist` | Lista blacklist |
+| `.listblacklist` | Lista a blacklist |
 | `.addmod @user` | Adiciona moderador |
 | `.delmod @user` | Remove moderador |
 | `.listmods` | Lista moderadores |
 
-### 💬 Gestão do Grupo
+</details>
+
+<details>
+<summary><strong>💬 Gestão do Grupo — nome, foto, regras, mensagens</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
 | `.nomegp [nome]` | Altera o nome do grupo |
 | `.descgrupo [desc]` | Altera a descrição |
-| `.fotogrupo` | Altera a foto do grupo |
-| `.linkgp` | Obtém o link do grupo |
+| `.fotogrupo` | Define a foto do grupo |
+| `.linkgp` | Obtém o link de convite |
 | `.opengp` | Abre o grupo para todos |
-| `.closegp` | Fecha o grupo (só admins falam) |
+| `.closegp` | Fecha (só admins falam) |
 | `.limpar [n]` | Apaga as últimas N mensagens |
 | `.del` | Apaga a mensagem citada |
-| `.sorteio @users` | Realiza um sorteio |
+| `.sorteio` | Realiza um sorteio |
 | `.grupo` | Informações do grupo |
 | `.statusgp` | Status e configs do grupo |
-| `.infoperso` | Informações de personalização |
 | `.regras` | Exibe regras do grupo |
 | `.addregra [regra]` | Adiciona uma regra |
 | `.delregra [n]` | Remove uma regra |
-| `.bemvindo` | Ativa/desativa mensagem de boas-vindas |
+| `.bemvindo` | Ativa/desativa boas-vindas |
 | `.fotobv` | Define foto de boas-vindas |
-| `.rmfotobv` | Remove foto de boas-vindas |
+| `.legendabv [texto]` | Define legenda de boas-vindas |
 | `.saida` | Ativa/desativa mensagem de saída |
 | `.fotosaiu` | Define foto de saída |
-| `.rmfotosaiu` | Remove foto de saída |
-| `.legendabv [texto]` | Define legenda de boas-vindas |
 | `.legendasaiu [texto]` | Define legenda de saída |
 
-### 🔒 Segurança
+</details>
+
+<details>
+<summary><strong>🔒 Segurança — anti-links, anti-spam, anti-conteúdo</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
@@ -309,7 +367,7 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.antilinkhard` | Modo rígido anti-link |
 | `.antilinksoft` | Modo suave anti-link |
 | `.antiflood` | Protege contra flood |
-| `.antiporn` | Detecta e remove conteúdo adulto |
+| `.antiporn` | Remove conteúdo adulto com IA |
 | `.antitoxic <on/off>` | Filtra linguagem tóxica com IA |
 | `.antipalavra <on/off/add/del/list>` | Filtra palavras específicas |
 | `.antifig` | Remove figurinhas indesejadas |
@@ -319,14 +377,13 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.antistatus` | Remove reposts de status |
 | `.blockuser @user` | Bloqueia usuário no grupo |
 | `.unblockuser @user` | Desbloqueia usuário |
-| `.listblocksgp` | Lista usuários bloqueados |
-| `.blockcmd [cmd]` | Bloqueia comando no grupo |
-| `.unblockcmd [cmd]` | Desbloqueia comando |
 | `.wladd @user` | Adiciona à whitelist |
 | `.wl.remove @user` | Remove da whitelist |
-| `.wl.lista` | Lista whitelist |
 
-### ⚡ Ativações
+</details>
+
+<details>
+<summary><strong>⚡ Ativações — modos, automações e ranking</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
@@ -334,28 +391,26 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.modolite` | Ativa/desativa modo lite |
 | `.modorpg` | Ativa/desativa modo RPG |
 | `.modoparceria` | Ativa/desativa modo parcerias |
-| `.assistente` | Ativa/desativa assistente IA do grupo |
-| `.simsimi [personalidade]` | Ativa/desativa SimSimi com IA |
-| `.autorepo` | Ativa/desativa repost automático |
-| `.autodl` | Ativa/desativa download automático |
-| `.autosticker` | Ativa/desativa figurinha automática |
-| `.automsg [msg]` | Define mensagem automática |
+| `.assistente` | Assistente IA automático do grupo |
+| `.simsimi [personalidade]` | Auto-resposta com IA por personalidade |
+| `.autorepo` | Repost automático de mensagens |
+| `.autodl` | Download automático de links |
+| `.autosticker` | Figurinha automática de imagens |
+| `.automsg [msg]` | Mensagem automática periódica |
 | `.autorespostas` | Configura respostas automáticas |
 | `.soadm` | Apenas admins usam comandos |
-| `.sorteio` | Faz um sorteio no grupo |
 | `.checkativo` | Verifica membros ativos |
 | `.atividade` | Relatório de atividade |
-| `.rankativo` | Ranking de membros ativos |
-| `.rankativos` | Ranking geral de ativos |
-| `.rankinativo` | Ranking de inativos |
+| `.rankativo` | Ranking de ativos |
 | `.limparrank` | Limpa o ranking |
-| `.resetrank` | Reseta o ranking |
-| `.mantercontador` | Mantém contador de membros que saíram |
-| `.minmessage [n]` | Define mínimo de mensagens |
+| `.mantercontador` | Mantém contador de quem saiu |
+| `.minmessage [n]` | Mínimo de mensagens para constar |
 | `.limitmessage [n]` | Limite de mensagens por período |
-| `.cmdlimit [cmd] [n]` | Limite de uso de comando |
 
-### 🎨 Configurações do Grupo
+</details>
+
+<details>
+<summary><strong>🎨 Configurações Visuais — prefix, fotos, parcerias, cargos</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
@@ -365,522 +420,169 @@ Bot de WhatsApp avançado e multifuncional desenvolvido em **Node.js** com a bib
 | `.addparceria [info]` | Adiciona parceria |
 | `.delparceria` | Remove parceria |
 | `.parcerias` | Lista parcerias |
-| `.addautoadm` | Adiciona resposta automática de admin |
-| `.delautoadm` | Remove resposta automática |
-| `.listautoadm` | Lista respostas automáticas |
+| `.role.criar [nome]` | Cria um cargo |
+| `.role.alterar [cargo]` | Altera um cargo |
+| `.role.excluir [cargo]` | Remove um cargo |
+| `.roles` | Lista todos os cargos |
 | `.solicitacoes` | Gerencia solicitações de entrada |
 | `.aprovar` | Aprova solicitação |
 | `.recusarsolic` | Recusa solicitação |
-| `.role.criar` | Cria um cargo/role |
-| `.role.alterar` | Altera um cargo |
-| `.role.excluir` | Remove um cargo |
-| `.roles` | Lista cargos |
+
+</details>
 
 ---
 
-## 🎨 Comandos — Figurinhas
+## 🎨 Figurinhas
+
+<details>
+<summary><strong>🖼️ Criar, converter e editar figurinhas</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
-| `.s` / `.sticker` | Cria figurinha de imagem/vídeo |
-| `.sticker2` | Cria figurinha modo 2 |
-| `.ttp [texto]` | Figurinha com texto |
-| `.attp [texto]` | Figurinha animada com texto |
+| `.s` / `.sticker` | Cria figurinha de imagem ou vídeo |
+| `.sticker2` | Cria figurinha no modo alternativo |
+| `.ttp [texto]` | Figurinha com texto estático |
+| `.attp [texto]` | Figurinha animada com texto (fundo transparente) |
 | `.toimg` | Converte figurinha em imagem |
-| `.emojimix [emoji+emoji]` | Mistura dois emojis |
-| `.figualeatoria` | Figurinha aleatória |
-| `.sbg` | Remove fundo da figurinha |
+| `.emojimix [emoji+emoji]` | Mistura dois emojis em figurinha |
+| `.figualeatoria` | Envia figurinha aleatória |
+| `.sbg` | Remove o fundo da figurinha |
 | `.sfundo` | Adiciona fundo à figurinha |
-| `.rename [nome]` | Renomeia figurinha |
+| `.rename [nome]` | Renomeia a figurinha |
 | `.take` | Rouba figurinha de outra mensagem |
 | `.rgtake` | Rouba figurinha redimensionada |
-| `.qc` | Cria figurinha de citação |
+| `.qc` | Cria figurinha de citação estilizada |
+
+</details>
 
 ---
 
-## 🤖 Comandos — Inteligência Artificial
+## 🤖 Inteligência Artificial
 
-### Modelos de IA
+<details>
+<summary><strong>🧠 Modelos de IA disponíveis — Gemini, LLaMA, Mistral e mais</strong></summary>
 
-| Comando | Modelo |
-|---------|--------|
+| Comando | Modelo / Empresa |
+|---------|-----------------|
 | `.ia [msg]` | IA padrão do bot |
 | `.gemma` / `.gemma2` | Google Gemma |
 | `.llama` / `.llama3` | Meta LLaMA |
 | `.mistral` | Mistral AI |
+| `.magistral` | Mistral Magistral |
 | `.qwen` / `.qwen2` / `.qwen3` | Alibaba Qwen |
 | `.phi` / `.phi3` | Microsoft Phi |
 | `.falcon` | TII Falcon |
 | `.yi` | 01.AI Yi |
 | `.kimi` / `.kimik2` | Moonshot Kimi |
-| `.magistral` | Mistral Magistral |
 | `.marin` | Marin AI |
 | `.rocket` | Rocket AI |
-| `.baichuan` | Baichuan |
+| `.baichuan` | Baichuan AI |
 | `.cog` | Cog |
 | `.swallow` | Swallow |
 | `.rakutenai` | Rakuten AI |
 
-### Ferramentas de IA
+</details>
+
+<details>
+<summary><strong>🛠️ Ferramentas de IA — resumir, corrigir, explicar e mais</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
 | `.corrigir [texto]` | Corrige gramática e ortografia |
-| `.resumir [texto]` | Resume um texto |
-| `.resumirurl [url]` | Resume uma página web |
-| `.resumirchat` | Resume o chat do grupo |
-| `.explicar [texto]` | Explica um conceito |
-| `.debater [tema]` | Debate sobre um tema |
-| `.ideias [tema]` | Gera ideias criativas |
-| `.recomendar [tipo]` | Faz recomendações |
-| `.horoscopo [signo]` | Horóscopo do dia |
-| `.signos` | Informações sobre signos |
-| `.iaclear` | Limpa histórico da IA |
+| `.resumir [texto]` | Resume um texto longo |
+| `.resumirurl [url]` | Resume o conteúdo de uma página web |
+| `.resumirchat` | Resume as mensagens recentes do grupo |
+| `.explicar [texto]` | Explica um conceito de forma simples |
+| `.debater [tema]` | Debate sobre um tema com argumentos |
+| `.ideias [tema]` | Gera ideias criativas sobre um assunto |
+| `.recomendar [tipo]` | Faz recomendações personalizadas |
+| `.horoscopo [signo]` | Horóscopo do dia com IA |
+| `.signos` | Informações sobre os signos |
+| `.iaclear` | Limpa o histórico de conversa com a IA |
 
-### SimSimi (auto-resposta por grupo)
+</details>
 
-| Personalidade | Estilo |
-|---------------|--------|
-| `.simsimi divertido` | Casual e engraçado (padrão) |
+<details>
+<summary><strong>💬 SimSimi — auto-resposta por grupo com personalidades</strong></summary>
+
+Quando ativo, o bot responde **automaticamente a todas as mensagens** do grupo usando IA Gemini. Cada grupo tem sua própria personalidade independente.
+
+| Comando | Personalidade |
+|---------|---------------|
+| `.simsimi divertido` | Casual e engraçado *(padrão)* |
 | `.simsimi serio` | Direto e formal |
 | `.simsimi romantico` | Carinhoso e meigo |
 | `.simsimi debochado` | Irônico e sarcástico |
 | `.simsimi filosofo` | Profundo e reflexivo |
 | `.simsimi animado` | Empolgado com emojis |
+| `.simsimi` *(sem argumento)* | Desativa o SimSimi |
 
-> Use `.simsimi` sem argumento para desativar. Troque de personalidade enviando `.simsimi [nova_personalidade]` com o SimSimi já ativo.
+> Troque de personalidade a qualquer momento sem precisar desativar — basta enviar `.simsimi [nova_personalidade]`.
+
+</details>
 
 ---
 
-## ⬇️ Comandos — Downloads
+## ⬇️ Downloads
 
-| Comando | Descrição |
-|---------|-----------|
-| `.play [música]` | Baixa áudio do YouTube |
-| `.play2 [música]` | Baixa áudio (modo 2) |
-| `.playvid [vídeo]` | Baixa vídeo do YouTube |
-| `.tiktok [link]` | Baixa vídeo do TikTok |
-| `.instagram [link]` | Baixa do Instagram |
-| `.igstory [link]` | Baixa stories do Instagram |
-| `.facebook [link]` | Baixa do Facebook |
-| `.twitter [link]` | Baixa do Twitter/X |
-| `.pinterest [link]` | Baixa do Pinterest |
-| `.spotify [música]` | Baixa do Spotify |
-| `.soundcloud [link]` | Baixa do SoundCloud |
-| `.mediafire [link]` | Baixa do MediaFire |
-| `.gdrive [link]` | Baixa do Google Drive |
-| `.apps [app]` | Baixa APK de aplicativos |
-| `.mcplugin [plugin]` | Baixa plugin do Minecraft |
-| `.letra [música]` | Busca letra de música |
-| `.dicionario [palavra]` | Definição de palavra |
-| `.wikipedia [tema]` | Busca na Wikipedia |
+<details>
+<summary><strong>🎵 Música, vídeo e arquivos de diversas plataformas</strong></summary>
+
+| Comando | Plataforma / Função |
+|---------|---------------------|
+| `.play [música]` | Áudio do YouTube |
+| `.play2 [música]` | Áudio YouTube (modo 2) |
+| `.playvid [vídeo]` | Vídeo do YouTube |
+| `.tiktok [link]` | Vídeo do TikTok |
+| `.instagram [link]` | Post/Reels do Instagram |
+| `.igstory [link]` | Stories do Instagram |
+| `.facebook [link]` | Vídeo do Facebook |
+| `.twitter [link]` | Vídeo do Twitter/X |
+| `.pinterest [link]` | Imagem do Pinterest |
+| `.spotify [música]` | Áudio do Spotify |
+| `.soundcloud [link]` | Áudio do SoundCloud |
+| `.mediafire [link]` | Arquivo do MediaFire |
+| `.gdrive [link]` | Arquivo do Google Drive |
+| `.apps [app]` | Download de APK |
+| `.mcplugin [plugin]` | Plugin do Minecraft |
+| `.letra [música]` | Letra de música |
+| `.dicionario [palavra]` | Definição no dicionário |
+| `.wikipedia [tema]` | Artigo da Wikipedia |
 | `.noticias` | Últimas notícias |
-| `.google [busca]` | Busca no Google |
+| `.google [busca]` | Pesquisa no Google |
+
+</details>
 
 ---
 
-## 🎉 Comandos — Brincadeiras
+## 🎉 Brincadeiras
 
-> Disponíveis apenas em grupos com `.modobn` ativado.
+> Requer `.modobn` ativo no grupo.
 
-### Relacionamentos
+<details>
+<summary><strong>💕 Relacionamentos — namoro, casamento, ship</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
 | `.namoro @user` | Pede alguém em namoro |
 | `.casamento @user` | Pede alguém em casamento |
-| `.terminar` | Termina o namoro |
+| `.terminar` | Termina o relacionamento |
 | `.divorciar` | Pede divórcio |
-| `.casal` | Exibe informações do casal |
+| `.casal` | Informações do seu casal |
 | `.casais` | Lista casais do grupo |
 | `.shipo @user @user` | Cria um ship entre dois usuários |
-| `.chance [coisa]` | Calcula a chance de algo |
+| `.chance [coisa]` | Calcula a chance de algo acontecer |
 | `.sorte` | Sorte do dia |
 
-### Interações
+</details>
+
+<details>
+<summary><strong>🤺 Interações — abraçar, beijo, soco, elogios e mais</strong></summary>
 
 | Comando | Descrição |
 |---------|-----------|
 | `.abracar @user` | Abraça alguém |
 | `.beijar @user` | Beija alguém |
-| `.cafune @user` | Dá cafuné em alguém |
+| `.cafune @user` | Dá cafuné |
 | `.tapa @user` | Dá um tapa |
-| `.soco @user` | Dá um soco |
-| `.chutar @user` | Chuta alguém |
-| `.lamber @user` | Lambe alguém |
-| `.morder @user` | Morde alguém |
-| `.mata @user` | "Mata" alguém |
-| `.explodir @user` | "Explode" alguém |
-| `.elogio @user` | Elogia alguém |
-| `.cantada @user` | Manda uma cantada |
-| `.conselho` | Gera um conselho |
-| `.conselhobiblico` | Conselho bíblico |
-| `.motivacional` | Frase motivacional |
-| `.piada` | Conta uma piada |
-| `.fato` | Fato aleatório |
-| `.charada` | Faz uma charada |
-
-### Perfis & Personalidade
-
-| Comando | Descrição |
-|---------|-----------|
-| `.perfil` | Exibe seu perfil |
-| `.rankativo` | Ranking de ativos do grupo |
-| `.rep @user` | Dá reputação a alguém |
-| `.conquistas` | Suas conquistas |
-| `.presente @user` | Envia um presente |
-| `.afk [motivo]` | Marca como ausente |
-| `.voltei` | Remove status AFK |
-| `.online` / `.offline` | Altera status |
-
-> O menu de brincadeiras também inclui mais de **200 tipos de personalidade** (`lindo`, `gado`, `nerd`, `patriotico`, etc.) e jogos como `.uno`, `.stop`, `.forca`, `.wordle`, `.jogodavelha`, `.connect4`, `.batalhanaval`, `.dueloquiz`, `.tictactoe`, `.cacapalavras`, `.memoria`.
-
----
-
-## ⚔️ Comandos — RPG
-
-> Sistema completo de RPG com economia, pets, clãs, masmorras e muito mais.
-
-### Personagem & Progresso
-
-| Comando | Descrição |
-|---------|-----------|
-| `.perfilrpg` | Exibe seu perfil RPG |
-| `.class` | Escolhe/visualiza sua classe |
-| `.meustats` | Suas estatísticas |
-| `.habilidades` | Habilidades disponíveis |
-| `.evoluir` | Evolui seu personagem |
-| `.evolve` | Sistema de evolução avançado |
-| `.prestige` | Sistema de prestígio |
-| `.train` | Treina seu personagem |
-| `.streak` | Sequência diária |
-| `.diario` | Recompensas diárias |
-| `.missoes` | Lista missões disponíveis |
-| `.conquistas` | Conquistas desbloqueadas |
-| `.vote` | Vota para ganhar recompensas |
-
-### Economia
-
-| Comando | Descrição |
-|---------|-----------|
-| `.carteira` | Saldo atual |
-| `.dep [valor]` | Deposita moedas |
-| `.sacar [valor]` | Saca moedas |
-| `.pix @user [valor]` | Transfere para outro jogador |
-| `.doar @user [valor]` | Doa moedas |
-| `.work` | Trabalha para ganhar moedas |
-| `.emprego` | Gerencia empregos |
-| `.vagas` | Vagas de emprego |
-| `.demitir` | Demite de um emprego |
-| `.investir [valor]` | Investe moedas |
-| `.crime` | Comete um crime |
-| `.assaltar @user` | Tenta assaltar um jogador |
-| `.topriqueza` | Ranking dos mais ricos |
-
-### Jogos de Azar
-
-| Comando | Descrição |
-|---------|-----------|
-| `.slots [valor]` | Máquina caça-níquel |
-| `.roleta [valor]` | Roleta |
-| `.blackjack [valor]` | Blackjack |
-| `.coinflip [valor]` | Cara ou coroa |
-| `.crash [valor]` | Jogo crash |
-| `.apostar [valor]` | Apostas gerais |
-| `.loteria [valor]` | Loteria |
-| `.leilao` | Sistema de leilão |
-| `.auction` | Leilão avançado |
-
-### Loja & Equipamentos
-
-| Comando | Descrição |
-|---------|-----------|
-| `.loja` | Loja principal |
-| `.lojapremium` | Loja premium |
-| `.comprar [item]` | Compra um item |
-| `.vender [item]` | Vende um item |
-| `.equipamentos` | Seus equipamentos |
-| `.forge [item]` | Forja um equipamento |
-| `.dismantle [item]` | Desmonta equipamento |
-| `.enchant [item]` | Encanta equipamento |
-| `.reparar [item]` | Repara equipamento |
-| `.receitas` | Lista de receitas de craft |
-| `.materiais` | Seus materiais |
-| `.ingredientes` | Ingredientes disponíveis |
-| `.precos` | Tabela de preços |
-| `.mercado` | Mercado entre jogadores |
-| `.cmerc` | Central do mercado |
-
-### Pets & Fazenda
-
-| Comando | Descrição |
-|---------|-----------|
-| `.pets` | Seus pets |
-| `.feed [pet]` | Alimenta seu pet |
-| `.equippet [pet]` | Equipa um pet |
-| `.unequippet` | Desequipa pet |
-| `.renamepet [pet] [nome]` | Renomeia pet |
-| `.petbattle @user` | Batalha de pets |
-| `.petbet [valor]` | Aposta na batalha |
-| `.plantar [semente]` | Planta uma semente |
-| `.plantacao` | Visualiza sua plantação |
-| `.colher` | Colhe plantação |
-| `.coletar` | Coleta recursos |
-| `.sementes` | Suas sementes |
-| `.fish` | Pesca |
-| `.mine` | Minera recursos |
-| `.cook [receita]` | Cozinha uma receita |
-| `.eat [comida]` | Come um alimento |
-| `.vendercomida [item]` | Vende comida |
-
-### Exploração & Batalhas
-
-| Comando | Descrição |
-|---------|-----------|
-| `.explore` | Explora novas áreas |
-| `.dungeon` / `.masmorra` | Entra em uma masmorra |
-| `.arena` | Entra na arena PvP |
-| `.desafio @user` | Desafia outro jogador |
-| `.duelrpg @user` | Duela com outro jogador |
-| `.bossrpg` | Batalha contra boss |
-| `.guerra` | Participa de guerra de clãs |
-| `.torneio` | Torneio competitivo |
-| `.eventos` | Eventos especiais |
-| `.tributos` | Sistema de tributos |
-
-### Clãs & Social
-
-| Comando | Descrição |
-|---------|-----------|
-| `.cla` | Informações do seu clã |
-| `.criarcla [nome]` | Cria um clã |
-| `.convidar @user` | Convida para o clã |
-| `.aceitarconvite` | Aceita convite de clã |
-| `.recusarconvite` | Recusa convite |
-| `.expulsar @user` | Expulsa do clã |
-| `.sair` | Sai do clã |
-| `.familia` | Sistema de família |
-| `.adotar @user` | Adota um usuário |
-| `.adotaruser` | Solicita adoção |
-| `.relacionamento` | Seu relacionamento RPG |
-| `.namorar @user` | Namora no RPG |
-| `.casar @user` | Casa no RPG |
-| `.divorciar` | Divorcia no RPG |
-| `.deserdar @user` | Desherda alguém |
-
-### Propriedades & Ranking
-
-| Comando | Descrição |
-|---------|-----------|
-| `.casa` | Sua casa |
-| `.propriedades` | Suas propriedades |
-| `.cprop [prop]` | Compra propriedade |
-| `.cprops` | Lista propriedades |
-| `.proteger [prop]` | Protege propriedade |
-| `.boost` | Ativa boost |
-| `.toprpg` | Ranking RPG global |
-| `.ranklvl` | Ranking por nível |
-| `.rankglobal` | Ranking global |
-| `.desafiomensal` | Desafio mensal |
-| `.desafiosemanal` | Desafio semanal |
-| `.meusan` | Seus santos |
-
-### Admin RPG (Dono)
-
-| Comando | Descrição |
-|---------|-----------|
-| `.rpgadd [item] @user` | Adiciona item a jogador |
-| `.rpgremove [item] @user` | Remove item |
-| `.rpgadditem [item]` | Adiciona item ao sistema |
-| `.rpgremoveitem [item]` | Remove item do sistema |
-| `.rpgresetplayer @user` | Reseta jogador |
-| `.rpgresetglobal` | Reseta tudo |
-| `.rpgsetlevel @user [n]` | Define nível |
-| `.rpgstats` | Estatísticas do RPG |
-| `.resetgold` | Reseta ouro global |
-
----
-
-## 🔧 Comandos — Ferramentas
-
-| Comando | Descrição |
-|---------|-----------|
-| `.calc [expressão]` | Calculadora |
-| `.clima [cidade]` | Clima atual |
-| `.hora` | Hora atual |
-| `.aniversario [data]` | Calcula aniversário |
-| `.tradutor [idioma] [texto]` | Traduz texto |
-| `.encurtalink [url]` | Encurta um link |
-| `.qrcode [texto]` | Gera QR code |
-| `.lerqr` | Lê um QR code |
-| `.ssweb [url]` | Screenshot de site |
-| `.upload` | Faz upload de arquivo |
-| `.verificar` | Verifica um arquivo/link |
-| `.nota [texto]` | Cria uma nota |
-| `.notas` | Lista suas notas |
-| `.lembrete [tempo] [msg]` | Cria um lembrete |
-| `.meuslembretes` | Lista lembretes |
-| `.apagalembrete [id]` | Remove lembrete |
-| `.gerarnick` | Gera nicks aleatórios |
-| `.estatisticas` | Estatísticas gerais |
-| `.dicionario [palavra]` | Definição de palavra |
-| `.anagrama [palavra]` | Gera anagramas |
-
----
-
-## 🎬 Comandos — Alteradores de Mídia
-
-### Vídeo
-
-| Comando | Descrição |
-|---------|-----------|
-| `.cortarvideo [início] [fim]` | Corta um vídeo |
-| `.fastvid [velocidade]` | Acelera o vídeo |
-| `.videolento [velocidade]` | Desacelera o vídeo |
-| `.videoreverso` | Inverte o vídeo |
-| `.videoloop` | Cria loop do vídeo |
-| `.videomudo` | Remove o áudio |
-| `.videobw` | Converte para preto e branco |
-| `.espelhar` | Espelha o vídeo |
-| `.rotacionar [graus]` | Rotaciona o vídeo |
-| `.upscale` | Aumenta a resolução |
-| `.sepia` | Aplica filtro sépia |
-| `.pretoebranco` | Converte imagem p&b |
-| `.rmbg` | Remove fundo de imagem |
-
-### Áudio
-
-| Comando | Descrição |
-|---------|-----------|
-| `.cortaraudio [início] [fim]` | Corta um áudio |
-| `.audiorapido [velocidade]` | Acelera o áudio |
-| `.audiolento [velocidade]` | Desacelera o áudio |
-| `.audioreverso` | Inverte o áudio |
-| `.aumentarvolume [n]` | Aumenta volume |
-| `.volumeboost` | Boost de volume |
-| `.normalizar` | Normaliza o áudio |
-| `.tomp3` | Converte para MP3 |
-| `.bass` / `.bass2` / `.bass3` | Aumenta o grave |
-| `.bassbn` | Bass boost intenso |
-| `.reverb` | Adiciona reverb |
-| `.eco` | Adiciona eco |
-| `.pitch [n]` | Altera o pitch |
-| `.speed [n]` | Altera velocidade |
-| `.chorus` | Efeito chorus |
-| `.flanger` | Efeito flanger |
-| `.phaser` | Efeito phaser |
-| `.tremolo` | Efeito tremolo |
-| `.vibrato` | Efeito vibrato |
-| `.overdrive` | Efeito overdrive |
-| `.equalizar [config]` | Equalizador |
-| `.lowpass [freq]` | Filtro passa-baixo |
-| `.grave` | Realça graves |
-| `.boyvoice` | Voz masculina |
-| `.manvoice` | Voz grave |
-| `.childvoice` | Voz de criança |
-| `.vozcrianca` | Voz de criança BR |
-| `.vozcaverna` | Voz cavernosa |
-| `.reverse` | Reverte o áudio |
-| `.reversobn` | Reverso estilo funk |
-
----
-
-## 🔍 Comandos — Buscas e Consultas
-
-| Comando | Descrição |
-|---------|-----------|
-| `.cpf [número]` | Consulta CPF |
-| `.cnpj [número]` | Consulta CNPJ |
-| `.cnh [número]` | Consulta CNH |
-| `.placa [placa]` | Consulta placa de veículo |
-| `.chassi [número]` | Consulta chassi |
-| `.cep [cep]` | Consulta CEP |
-| `.tel [número]` | Consulta telefone |
-| `.telefone [número]` | Informações de telefone |
-| `.email [email]` | Consulta email |
-| `.nome [nome]` | Busca por nome |
-| `.mae [nome]` | Busca por nome da mãe |
-| `.pai [nome]` | Busca por nome do pai |
-| `.parentes [cpf]` | Busca parentes |
-| `.vizinhos [cep]` | Busca vizinhos |
-| `.enderecos [cpf]` | Busca endereços |
-| `.empregos [cpf]` | Busca empregos vinculados |
-| `.funcionarios [cnpj]` | Lista funcionários |
-| `.compras [cpf]` | Histórico de compras |
-| `.vacinas [cpf]` | Histórico de vacinas |
-| `.obito [cpf]` | Certidão de óbito |
-| `.titulo [cpf]` | Título de eleitor |
-| `.proprietario [placa]` | Proprietário do veículo |
-| `.score [cpf]` | Score de crédito |
-| `.internet [cpf]` | Serviços de internet vinculados |
-
----
-
-## 👤 Comandos — Membros
-
-| Comando | Descrição |
-|---------|-----------|
-| `.perfil` | Exibe seu perfil |
-| `.meustatus` | Seu status atual |
-| `.ping` | Latência do bot |
-| `.statusbot` | Status do bot |
-| `.topcmd` | Ranking de comandos mais usados |
-| `.totalcmd` | Total de comandos executados |
-| `.toprep` | Ranking de reputação |
-| `.rep @user` | Dá reputação a alguém |
-| `.inv` | Seu inventário |
-| `.caixa` | Sua caixa de itens |
-| `.presente @user` | Envia um presente |
-| `.denunciar @user` | Denuncia um usuário |
-| `.denuncias` | Lista denúncias |
-| `.infoff` | Informações do grupo |
-| `.mention` | Menciona alguém |
-| `.gitbot` | Repositório do bot |
-| `.zipbot` | Download do bot em .zip |
-| `.role.vou` | Confirma presença |
-| `.role.nvou` | Não irá |
-| `.role.confirmados` | Lista confirmados |
-
----
-
-## ✨ Recursos Especiais
-
-### AntiGP (`.antigp`)
-Faz o bot ignorar **todos os comandos** em um grupo específico sem sair do grupo. Apenas o dono continua usando o bot ali. Útil para pausar o bot em grupos problemáticos sem precisar removê-lo.
-
-### SimSimi com Personalidades
-Modo de auto-resposta por IA usando **Gemini 2.5 Flash Lite**. Cada grupo pode ter sua própria personalidade configurada de forma independente. Quando ativo, o bot responde automaticamente a todas as mensagens não-comandos.
-
-### Sistema de Menu Personalizável
-O design do menu é totalmente customizável via comandos (`.designmenu`, `.setheader`, `.setitem`, etc.) com persistência em `dados/database/dono/menuDesign.json`.
-
-### Comandos Personalizados (`.addcmd`)
-Crie comandos personalizados com suporte a parâmetros tipados, flags de permissão e respostas dinâmicas com placeholders como `{nome}`, `{grupo}`, `{velocidade}`.
-
-### Sistema de Moderadores (`.addmod`)
-Delegue permissões específicas a moderadores sem precisar torná-los admins do WhatsApp. Configure exatamente quais comandos cada moderador pode usar.
-
----
-
-## 🔧 Solução de Problemas
-
-| Problema | Solução |
-|----------|---------|
-| QR code expira rápido | Reinicie e escaneie mais rápido, ou use código de pareamento |
-| Bot desconecta frequentemente | Verifique a conexão no Replit; reinicie o workflow |
-| SimSimi / IA não responde | Confirme que `GEMINI_API_KEY` está nos Secrets do Replit |
-| Comandos ignorados no grupo | Verifique se `.antigp` ou `.botoff` está ativo |
-| Figurinha animada sem transparência | Verifique se os frames PNG têm fundo vermelho puro (#FF0000) |
-| Comando não encontrado | Confirme o prefixo correto (padrão: `.`) |
-
----
-
-## 📝 Notas Técnicas
-
-- **Prefixo padrão:** `.`
-- **Modelo de IA:** Gemini 2.5 Flash Lite
-- **Processamento de mídia:** FFmpeg + ImageMagick v7 (`magick`)
-- **Fontes disponíveis:** DejaVu Sans, Serif, Mono
-- **API local:** `dados/local-api/` (stickers, downloads)
-- **Banco de dados:** JSON por grupo em `dados/database/grupos/`
-- **Total de comandos:** ~1.600+
+| `.soco @user` | Dá um soco
