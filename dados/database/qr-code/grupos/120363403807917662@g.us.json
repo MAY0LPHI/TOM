@@ -1,0 +1,44 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-06T12:39:51.653Z",
+  "groupName": "Vagas/Alocação TI III👨🏼‍💻👩🏽‍💻",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "19014407463008@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Tatiane Lima",
+      "firstSeen": "2026-03-06T12:39:51.655Z",
+      "lastActivity": "2026-03-06T12:39:51.655Z"
+    },
+    {
+      "id": "101263031189692@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Operação Global ServiceIT",
+      "firstSeen": "2026-03-06T15:00:47.932Z",
+      "lastActivity": "2026-03-06T15:00:47.932Z"
+    },
+    {
+      "id": "237546118344825@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Lucas Gabriel",
+      "firstSeen": "2026-03-07T15:41:52.632Z",
+      "lastActivity": "2026-03-07T15:41:52.632Z"
+    }
+  ]
+}

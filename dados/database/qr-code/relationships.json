@@ -1,0 +1,187 @@
+{
+  "pairs": {
+    "104071386112100@lid::35270405701778@lid": {
+      "users": [
+        "104071386112100@lid",
+        "35270405701778@lid"
+      ],
+      "status": "namoro",
+      "stages": {
+        "namoro": {
+          "since": "2026-03-06T14:32:47.694Z",
+          "requestedBy": "104071386112100@lid",
+          "acceptedBy": "35270405701778@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T14:32:05.617Z",
+          "acceptedAt": "2026-03-06T14:32:47.694Z"
+        },
+        "brincadeira": {
+          "since": "2026-03-06T14:32:47.694Z",
+          "requestedBy": "104071386112100@lid",
+          "acceptedBy": "35270405701778@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T14:32:05.617Z",
+          "acceptedAt": "2026-03-06T14:32:47.694Z"
+        }
+      },
+      "history": [
+        {
+          "type": "namoro",
+          "requestedBy": "104071386112100@lid",
+          "acceptedBy": "35270405701778@lid",
+          "requestedAt": "2026-03-06T14:32:05.617Z",
+          "acceptedAt": "2026-03-06T14:32:47.694Z"
+        }
+      ],
+      "createdAt": "2026-03-06T14:32:47.694Z",
+      "updatedAt": "2026-03-06T14:32:47.694Z",
+      "terminatedAt": null,
+      "terminatedBy": null,
+      "lastStatus": "namoro"
+    },
+    "193514096820356@lid::69055121780979@lid": {
+      "users": [
+        "193514096820356@lid",
+        "69055121780979@lid"
+      ],
+      "status": "namoro",
+      "stages": {
+        "namoro": {
+          "since": "2026-03-06T15:45:07.563Z",
+          "requestedBy": "193514096820356@lid",
+          "acceptedBy": "69055121780979@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T15:42:28.547Z",
+          "acceptedAt": "2026-03-06T15:45:07.563Z"
+        },
+        "brincadeira": {
+          "since": "2026-03-06T15:45:07.563Z",
+          "requestedBy": "193514096820356@lid",
+          "acceptedBy": "69055121780979@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T15:42:28.547Z",
+          "acceptedAt": "2026-03-06T15:45:07.563Z"
+        }
+      },
+      "history": [
+        {
+          "type": "namoro",
+          "requestedBy": "193514096820356@lid",
+          "acceptedBy": "69055121780979@lid",
+          "requestedAt": "2026-03-06T15:42:28.547Z",
+          "acceptedAt": "2026-03-06T15:45:07.563Z"
+        }
+      ],
+      "createdAt": "2026-03-06T15:45:07.563Z",
+      "updatedAt": "2026-03-06T15:45:07.563Z",
+      "terminatedAt": null,
+      "terminatedBy": null,
+      "lastStatus": "namoro"
+    }
+  },
+  "archived": [
+    {
+      "users": [
+        "142082014474446@lid",
+        "238091545640995@lid"
+      ],
+      "status": "terminado",
+      "stages": {
+        "namoro": {
+          "since": "2026-03-06T13:54:06.700Z",
+          "requestedBy": "142082014474446@lid",
+          "acceptedBy": "238091545640995@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T13:53:57.408Z",
+          "acceptedAt": "2026-03-06T13:54:06.700Z"
+        },
+        "brincadeira": {
+          "since": "2026-03-06T13:54:06.700Z",
+          "requestedBy": "142082014474446@lid",
+          "acceptedBy": "238091545640995@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T13:53:57.408Z",
+          "acceptedAt": "2026-03-06T13:54:06.700Z"
+        }
+      },
+      "history": [
+        {
+          "type": "namoro",
+          "requestedBy": "142082014474446@lid",
+          "acceptedBy": "238091545640995@lid",
+          "requestedAt": "2026-03-06T13:53:57.408Z",
+          "acceptedAt": "2026-03-06T13:54:06.700Z"
+        },
+        {
+          "type": "traicao",
+          "traitor": "142082014474446@lid",
+          "victim": "238091545640995@lid",
+          "accomplice": "193514096820356@lid",
+          "date": "2026-03-06T13:54:42.106Z",
+          "groupId": "5511993394360-1615781235@g.us",
+          "previousStatus": "namoro"
+        },
+        {
+          "type": "termino",
+          "previousStatus": "namoro",
+          "triggeredBy": "142082014474446@lid",
+          "endedAt": "2026-03-06T13:55:16.298Z"
+        }
+      ],
+      "createdAt": "2026-03-06T13:54:06.700Z",
+      "updatedAt": "2026-03-06T13:54:06.700Z",
+      "terminatedAt": "2026-03-06T13:55:16.298Z",
+      "terminatedBy": "142082014474446@lid",
+      "lastStatus": "namoro",
+      "betrayals": {
+        "142082014474446@lid": 1,
+        "238091545640995@lid": 0
+      },
+      "lastBetrayal": {
+        "date": "2026-03-06T13:54:42.106Z",
+        "traitor": "142082014474446@lid",
+        "victim": "238091545640995@lid",
+        "accomplice": "193514096820356@lid"
+      },
+      "finalStatus": "namoro"
+    },
+    {
+      "users": [
+        "142082014474446@lid",
+        "238091545640995@lid"
+      ],
+      "status": "terminado",
+      "stages": {
+        "brincadeira": {
+          "since": "2026-03-06T17:50:06.162Z",
+          "requestedBy": "142082014474446@lid",
+          "acceptedBy": "238091545640995@lid",
+          "groupId": "5511993394360-1615781235@g.us",
+          "requestedAt": "2026-03-06T17:49:42.202Z",
+          "acceptedAt": "2026-03-06T17:50:06.162Z"
+        }
+      },
+      "history": [
+        {
+          "type": "brincadeira",
+          "requestedBy": "142082014474446@lid",
+          "acceptedBy": "238091545640995@lid",
+          "requestedAt": "2026-03-06T17:49:42.202Z",
+          "acceptedAt": "2026-03-06T17:50:06.162Z"
+        },
+        {
+          "type": "termino",
+          "previousStatus": "brincadeira",
+          "triggeredBy": "142082014474446@lid",
+          "endedAt": "2026-03-06T17:51:12.596Z"
+        }
+      ],
+      "createdAt": "2026-03-06T17:50:06.162Z",
+      "updatedAt": "2026-03-06T17:50:06.162Z",
+      "terminatedAt": "2026-03-06T17:51:12.596Z",
+      "terminatedBy": "142082014474446@lid",
+      "lastStatus": "brincadeira",
+      "finalStatus": "brincadeira"
+    }
+  ]
+}

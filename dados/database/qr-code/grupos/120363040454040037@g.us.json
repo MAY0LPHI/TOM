@@ -1,0 +1,45 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-06T02:37:57.196Z",
+  "groupName": "MEMÓRIAS DE UM GRUPO 🥲",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "104003237109862@lid",
+      "msg": 4,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Nocchere",
+      "firstSeen": "2026-03-06T02:37:57.197Z",
+      "lastActivity": "2026-03-06T02:38:31.015Z"
+    },
+    {
+      "id": "69055121780979@lid",
+      "msg": 4,
+      "cmd": 5,
+      "figu": 4,
+      "pushname": "ㅤ",
+      "firstSeen": "2026-03-06T02:38:21.557Z",
+      "lastActivity": "2026-03-06T02:53:34.028Z"
+    },
+    {
+      "id": "121199698940031@lid",
+      "msg": 9,
+      "cmd": 2,
+      "figu": 1,
+      "pushname": "Ulisses Albyeri",
+      "firstSeen": "2026-03-06T02:39:33.847Z",
+      "lastActivity": "2026-03-06T02:46:57.468Z"
+    }
+  ],
+  "modobrincadeira": true
+}

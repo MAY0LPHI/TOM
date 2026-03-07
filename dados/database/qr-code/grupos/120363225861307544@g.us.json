@@ -1,0 +1,35 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-06T08:33:21.425Z",
+  "groupName": "Pelada amigos do Boulevard",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "183674544881886@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Vanderson Santos",
+      "firstSeen": "2026-03-06T08:33:21.426Z",
+      "lastActivity": "2026-03-06T08:33:21.426Z"
+    },
+    {
+      "id": "76674410500347@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "🥷🏾",
+      "firstSeen": "2026-03-06T22:39:53.270Z",
+      "lastActivity": "2026-03-06T22:39:53.270Z"
+    }
+  ]
+}

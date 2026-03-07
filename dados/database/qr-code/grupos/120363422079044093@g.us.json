@@ -1,0 +1,54 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-06T03:24:27.515Z",
+  "groupName": "NiteDragons Corp",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "71541941350574@lid",
+      "msg": 2,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Mateus",
+      "firstSeen": "2026-03-06T03:24:27.516Z",
+      "lastActivity": "2026-03-06T03:24:46.758Z"
+    },
+    {
+      "id": "22476184654049@lid",
+      "msg": 2,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Warley Pro V2",
+      "firstSeen": "2026-03-06T03:24:32.341Z",
+      "lastActivity": "2026-03-06T03:24:48.933Z"
+    },
+    {
+      "id": "202258734120975@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "knowxly",
+      "firstSeen": "2026-03-06T03:47:33.586Z",
+      "lastActivity": "2026-03-06T03:47:33.586Z"
+    },
+    {
+      "id": "69055121780979@lid",
+      "msg": 13,
+      "cmd": 1,
+      "figu": 1,
+      "pushname": "ㅤ",
+      "firstSeen": "2026-03-06T03:58:49.542Z",
+      "lastActivity": "2026-03-06T15:43:20.299Z"
+    }
+  ],
+  "antigp": true
+}

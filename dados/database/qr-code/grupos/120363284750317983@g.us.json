@@ -1,0 +1,12 @@
+{
+  "bemvindo": false,
+  "welcome": {},
+  "textbv": "",
+  "exit": {
+    "enabled": false,
+    "text": "",
+    "image": ""
+  },
+  "blacklist": {},
+  "x9": false
+}

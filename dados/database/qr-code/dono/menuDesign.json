@@ -1,0 +1,9 @@
+{
+  "header": "╔══「 💀 *{botName}* 💀 」══╗\n║  👾 *{userName}*\n╚══[ 🔐 SISTEMA ATIVO ]══╝",
+  "menuTopBorder": "╔══",
+  "bottomBorder": "╚══[ ⚡ FIM DO LOG ]══╝",
+  "menuTitleIcon": "🖥️",
+  "menuItemIcon": "  ⌨️  ",
+  "separatorIcon": "💾",
+  "middleBorder": "║"
+}

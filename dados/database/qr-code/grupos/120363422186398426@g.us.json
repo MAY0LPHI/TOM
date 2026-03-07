@@ -1,0 +1,34 @@
+{
+  "bemvindo": false,
+  "welcome": {},
+  "textbv": "",
+  "exit": {
+    "enabled": false,
+    "text": "",
+    "image": ""
+  },
+  "blacklist": {},
+  "x9": false,
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "groupName": "CLIENTES (ARLESON) GF ATACADO #13",
+  "contador": [
+    {
+      "id": "23519995936800@lid",
+      "msg": 48,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Vendedor Arleson • GF ATACADO",
+      "firstSeen": "2026-03-06T13:55:32.452Z",
+      "lastActivity": "2026-03-06T23:43:18.123Z"
+    }
+  ]
+}
