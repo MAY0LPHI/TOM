@@ -48,7 +48,7 @@ Desenvolvido em **Node.js** com **Baileys** · Hospedado no **Replit**
   "nomebot": "TOM",
   "prefixo": ".",
   "nomedono": "LIBID",
-  "numerodono": "5"
+  "numerodono": "5527988963725"
 }
 ```
 
@@ -585,4 +585,459 @@ Quando ativo, o bot responde **automaticamente a todas as mensagens** do grupo u
 | `.beijar @user` | Beija alguém |
 | `.cafune @user` | Dá cafuné |
 | `.tapa @user` | Dá um tapa |
-| `.soco @user` | Dá um soco
+| `.soco @user` | Dá um soco |
+| `.chutar @user` | Chuta alguém |
+| `.lamber @user` | Lambe alguém |
+| `.morder @user` | Morde alguém |
+| `.mata @user` | "Mata" alguém na brincadeira |
+| `.explodir @user` | "Explode" alguém |
+| `.elogio @user` | Elogia alguém |
+| `.cantada @user` | Manda uma cantada |
+| `.conselho` | Gera um conselho |
+| `.conselhobiblico` | Conselho bíblico aleatório |
+| `.motivacional` | Frase motivacional |
+| `.piada` | Conta uma piada |
+| `.fato` | Fato aleatório |
+| `.charada` | Faz uma charada |
+
+</details>
+
+<details>
+<summary><strong>🎮 Jogos — uno, stop, forca, wordle e muito mais</strong></summary>
+
+| Comando | Jogo |
+|---------|------|
+| `.uno` | UNO multiplayer |
+| `.stop` | Stop/Adedonha |
+| `.forca` | Jogo da forca |
+| `.wordle` | Wordle em português |
+| `.jogodavelha` | Jogo da velha |
+| `.tictactoe` | Tic-tac-toe |
+| `.connect4` | Conecta 4 |
+| `.batalhanaval` | Batalha naval |
+| `.dueloquiz` | Duelo de perguntas |
+| `.cacapalavras` | Caça-palavras |
+| `.memoria` | Jogo da memória |
+| `.anagrama` | Adivinhe o anagrama |
+
+</details>
+
+<details>
+<summary><strong>🪪 Perfis e Personalidade — mais de 200 tipos</strong></summary>
+
+O menu de brincadeiras contém mais de **200 tipos de personalidade** para descrever membros do grupo, como:
+
+`lindo` · `gada` · `nerd` · `patriotico` · `humilde` · `otario` · `malandro` · `introvertida` · `gamer` · `digital` · `cosmopolita` · `pessimista` · `otimista` · `filosof` · e muitos outros.
+
+Use `.perfil` para ver seu perfil completo, `.rep @user` para dar reputação e `.conquistas` para ver suas conquistas.
+
+</details>
+
+---
+
+## ⚔️ RPG
+
+> Sistema completo de RPG com economia, pets, clãs, masmorras e muito mais. Requer `.modorpg` ativo.
+
+<details>
+<summary><strong>🧙 Personagem & Progresso — classe, evolução, missões</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.perfilrpg` | Exibe seu perfil RPG |
+| `.class` | Escolhe ou visualiza sua classe |
+| `.meustats` | Suas estatísticas de combate |
+| `.habilidades` | Habilidades disponíveis |
+| `.evoluir` | Evolui seu personagem |
+| `.evolve` | Sistema de evolução avançado |
+| `.prestige` | Sistema de prestígio |
+| `.train` | Treina seus atributos |
+| `.streak` | Sequência de login diário |
+| `.diario` | Recompensas diárias |
+| `.missoes` | Lista missões disponíveis |
+| `.conquistas` | Conquistas desbloqueadas |
+| `.vote` | Vota para ganhar recompensas |
+| `.beneficios` | Lista de benefícios ativos |
+
+</details>
+
+<details>
+<summary><strong>💰 Economia — trabalho, crime, investimentos, riqueza</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.carteira` | Saldo atual |
+| `.dep [valor]` | Deposita moedas |
+| `.sacar [valor]` | Saca moedas |
+| `.pix @user [valor]` | Transfere moedas |
+| `.doar @user [valor]` | Doa moedas |
+| `.work` | Trabalha para ganhar |
+| `.emprego` | Gerencia empregos |
+| `.vagas` | Vagas disponíveis |
+| `.investir [valor]` | Investe moedas |
+| `.crime` | Comete um crime |
+| `.assaltar @user` | Tenta assaltar um jogador |
+| `.topriqueza` | Ranking dos mais ricos |
+
+</details>
+
+<details>
+<summary><strong>🎰 Jogos de Azar — slots, roleta, blackjack, crash</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.slots [valor]` | Máquina caça-níquel |
+| `.roleta [valor]` | Roleta |
+| `.blackjack [valor]` | Blackjack |
+| `.coinflip [valor]` | Cara ou coroa |
+| `.crash [valor]` | Jogo crash |
+| `.apostar [valor]` | Apostas gerais |
+| `.loteria [valor]` | Loteria |
+| `.leilao` | Sistema de leilão |
+| `.auction` | Leilão avançado |
+
+</details>
+
+<details>
+<summary><strong>🏪 Loja & Equipamentos — comprar, forjar, encantar</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.loja` | Loja principal |
+| `.lojapremium` | Loja premium |
+| `.comprar [item]` | Compra um item |
+| `.vender [item]` | Vende um item |
+| `.equipamentos` | Seus equipamentos equipados |
+| `.forge [item]` | Forja um equipamento |
+| `.dismantle [item]` | Desmonta para recuperar materiais |
+| `.enchant [item]` | Encanta equipamento |
+| `.reparar [item]` | Repara durabilidade |
+| `.receitas` | Lista de receitas de craft |
+| `.materiais` | Seus materiais |
+| `.ingredientes` | Ingredientes disponíveis |
+| `.mercado` | Mercado entre jogadores |
+
+</details>
+
+<details>
+<summary><strong>🐾 Pets & Fazenda — cultivar, pescar, minerar, cozinhar</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.pets` | Seus pets |
+| `.feed [pet]` | Alimenta seu pet |
+| `.equippet [pet]` | Equipa um pet |
+| `.renamepet [pet] [nome]` | Renomeia pet |
+| `.petbattle @user` | Batalha de pets |
+| `.plantar [semente]` | Planta uma semente |
+| `.plantacao` | Visualiza plantação |
+| `.colher` | Colhe a plantação |
+| `.coletar` | Coleta recursos do ambiente |
+| `.fish` | Pesca |
+| `.mine` | Minera recursos |
+| `.cook [receita]` | Cozinha uma receita |
+| `.eat [comida]` | Come um alimento |
+| `.sementes` | Suas sementes disponíveis |
+
+</details>
+
+<details>
+<summary><strong>⚔️ Batalhas & Exploração — masmorras, arena, boss</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.explore` | Explora novas áreas |
+| `.dungeon` / `.masmorra` | Entra em uma masmorra |
+| `.arena` | Entra na arena PvP |
+| `.desafio @user` | Desafia outro jogador |
+| `.duelrpg @user` | Duela com outro jogador |
+| `.bossrpg` | Batalha contra boss |
+| `.guerra` | Participa de guerra de clãs |
+| `.torneio` | Torneio competitivo |
+| `.eventos` | Eventos especiais do servidor |
+| `.tributos` | Sistema de tributos |
+
+</details>
+
+<details>
+<summary><strong>🏰 Clãs, Família & Propriedades — social e imóveis</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.cla` | Informações do seu clã |
+| `.criarcla [nome]` | Cria um clã |
+| `.convidar @user` | Convida para o clã |
+| `.expulsar @user` | Expulsa do clã |
+| `.familia` | Sistema de família |
+| `.adotar @user` | Adota um usuário |
+| `.relacionamento` | Seu relacionamento no RPG |
+| `.namorar @user` | Namora no RPG |
+| `.casar @user` | Casa no RPG |
+| `.casa` | Sua casa |
+| `.propriedades` | Suas propriedades |
+| `.cprop [prop]` | Compra propriedade |
+| `.proteger [prop]` | Protege propriedade |
+| `.boost` | Ativa boost de produção |
+
+</details>
+
+<details>
+<summary><strong>📊 Rankings RPG — nível, riqueza, global</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.toprpg` | Ranking RPG global |
+| `.ranklvl` | Ranking por nível |
+| `.rankglobal` | Ranking global |
+| `.topriqueza` | Ranking dos mais ricos |
+| `.desafiomensal` | Desafio do mês |
+| `.desafiosemanal` | Desafio da semana |
+| `.rpgstats` | Estatísticas gerais do RPG |
+
+</details>
+
+---
+
+## 🔧 Ferramentas
+
+<details>
+<summary><strong>🛠️ Utilitários do dia a dia — calc, clima, tradução, QR e mais</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.calc [expressão]` | Calculadora completa |
+| `.clima [cidade]` | Clima atual da cidade |
+| `.hora` | Hora atual |
+| `.aniversario [data]` | Calcula tempo até o aniversário |
+| `.tradutor [idioma] [texto]` | Traduz para qualquer idioma |
+| `.encurtalink [url]` | Encurta uma URL |
+| `.qrcode [texto]` | Gera QR code personalizado |
+| `.lerqr` | Lê o conteúdo de um QR code |
+| `.ssweb [url]` | Tira screenshot de um site |
+| `.upload` | Faz upload de arquivo e retorna link |
+| `.verificar` | Verifica link ou arquivo |
+| `.nota [texto]` | Salva uma nota pessoal |
+| `.notas` | Lista suas notas salvas |
+| `.lembrete [tempo] [msg]` | Cria lembrete com notificação |
+| `.meuslembretes` | Lista seus lembretes |
+| `.apagalembrete [id]` | Remove um lembrete |
+| `.gerarnick` | Gera nicks criativos aleatórios |
+| `.estatisticas` | Estatísticas do bot e grupo |
+| `.dicionario [palavra]` | Definição completa da palavra |
+| `.anagrama [palavra]` | Gera anagramas da palavra |
+
+</details>
+
+---
+
+## 🎬 Alteradores de Mídia
+
+<details>
+<summary><strong>🎥 Edição de Vídeo — cortar, acelerar, reverter, filtros</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.cortarvideo [início] [fim]` | Corta um trecho do vídeo |
+| `.fastvid [velocidade]` | Acelera o vídeo |
+| `.videolento [velocidade]` | Desacelera o vídeo |
+| `.videoreverso` | Inverte o vídeo |
+| `.videoloop` | Cria loop infinito |
+| `.videomudo` | Remove o áudio do vídeo |
+| `.videobw` | Converte para preto e branco |
+| `.espelhar` | Espelha o vídeo horizontalmente |
+| `.rotacionar [graus]` | Rotaciona o vídeo |
+| `.upscale` | Aumenta a resolução com IA |
+| `.sepia` | Aplica filtro sépia |
+| `.pretoebranco` | Converte imagem para p&b |
+| `.rmbg` | Remove fundo de imagem com IA |
+
+</details>
+
+<details>
+<summary><strong>🎵 Edição de Áudio — efeitos, voz, pitch, equalização</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.cortaraudio [início] [fim]` | Corta um trecho do áudio |
+| `.audiorapido [velocidade]` | Acelera o áudio |
+| `.audiolento [velocidade]` | Desacelera o áudio |
+| `.audioreverso` | Inverte o áudio |
+| `.aumentarvolume [n]` | Aumenta o volume |
+| `.volumeboost` | Boost extremo de volume |
+| `.normalizar` | Normaliza o volume |
+| `.tomp3` | Converte para MP3 |
+| `.bass` / `.bass2` / `.bass3` | Aumenta os graves |
+| `.bassbn` | Bass boost intenso estilo funk |
+| `.reverb` | Adiciona reverberação |
+| `.eco` | Adiciona eco |
+| `.pitch [n]` | Altera o tom do áudio |
+| `.chorus` | Efeito chorus |
+| `.flanger` | Efeito flanger |
+| `.phaser` | Efeito phaser |
+| `.tremolo` | Efeito tremolo |
+| `.vibrato` | Efeito vibrato |
+| `.overdrive` | Efeito overdrive/distorção |
+| `.equalizar [config]` | Equalizador personalizado |
+| `.lowpass [freq]` | Filtro passa-baixo |
+| `.boyvoice` | Converte para voz masculina |
+| `.manvoice` | Converte para voz grave |
+| `.childvoice` | Converte para voz de criança |
+| `.vozcaverna` | Voz cavernosa profunda |
+| `.reverse` | Reverte o áudio |
+| `.reversobn` | Reverso estilo funk |
+
+</details>
+
+---
+
+## 🔍 Buscas e Consultas
+
+<details>
+<summary><strong>🗃️ Consultas de dados — CPF, CNPJ, placa, CEP e muito mais</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.cpf [número]` | Consulta CPF |
+| `.cnpj [número]` | Consulta CNPJ |
+| `.cnh [número]` | Consulta CNH |
+| `.placa [placa]` | Consulta placa de veículo |
+| `.chassi [número]` | Consulta chassi |
+| `.cep [cep]` | Consulta CEP e endereço |
+| `.tel [número]` | Consulta número de telefone |
+| `.email [email]` | Consulta email |
+| `.nome [nome]` | Busca por nome |
+| `.mae [nome]` | Busca por nome da mãe |
+| `.pai [nome]` | Busca por nome do pai |
+| `.parentes [cpf]` | Busca parentes vinculados |
+| `.vizinhos [cep]` | Busca moradores da região |
+| `.enderecos [cpf]` | Histórico de endereços |
+| `.empregos [cpf]` | Vínculos empregatícios |
+| `.funcionarios [cnpj]` | Funcionários da empresa |
+| `.compras [cpf]` | Histórico de compras |
+| `.vacinas [cpf]` | Histórico de vacinação |
+| `.obito [cpf]` | Certidão de óbito |
+| `.titulo [cpf]` | Título de eleitor |
+| `.proprietario [placa]` | Proprietário do veículo |
+| `.score [cpf]` | Score de crédito |
+| `.internet [cpf]` | Serviços de internet vinculados |
+
+</details>
+
+---
+
+## 👤 Membros
+
+<details>
+<summary><strong>👤 Perfil, status, ranking e interações gerais</strong></summary>
+
+| Comando | Descrição |
+|---------|-----------|
+| `.perfil` | Exibe seu perfil completo |
+| `.meustatus` | Seu status atual |
+| `.ping` | Latência do bot |
+| `.statusbot` | Status e informações do bot |
+| `.topcmd` | Ranking dos comandos mais usados |
+| `.totalcmd` | Total de comandos executados |
+| `.toprep` | Ranking de reputação do grupo |
+| `.rep @user` | Dá reputação a alguém |
+| `.inv` | Seu inventário de itens |
+| `.caixa` | Sua caixa de presentes |
+| `.presente @user` | Envia um presente |
+| `.denunciar @user` | Denuncia um usuário |
+| `.denuncias` | Lista de denúncias |
+| `.infoff` | Informações detalhadas do grupo |
+| `.mention @user` | Menciona alguém com destaque |
+| `.afk [motivo]` | Marca como ausente |
+| `.voltei` | Remove status AFK |
+| `.gitbot` | Link do repositório do bot |
+| `.zipbot` | Download do bot em .zip |
+
+</details>
+
+---
+
+## ✨ Recursos Especiais
+
+<details>
+<summary><strong>🚫 AntiGP — pausar o bot em um grupo sem sair</strong></summary>
+
+O `.antigp` faz o bot **ignorar todos os comandos** em um grupo específico sem removê-lo. Apenas o dono continua conseguindo usar o bot naquele grupo.
+
+**Usar:** `.antigp` no grupo → ativa  
+**Desativar:** `.antigp` novamente → desativa
+
+Útil para suspender o bot em grupos problemáticos temporariamente.
+
+</details>
+
+<details>
+<summary><strong>💬 SimSimi — auto-resposta inteligente por grupo</strong></summary>
+
+Quando ativo, o bot responde automaticamente a **todas as mensagens que não são comandos** usando o modelo **Gemini 2.5 Flash Lite**. Cada grupo tem sua configuração independente.
+
+- Ative com `.simsimi [personalidade]`
+- Troque de personalidade sem desativar: `.simsimi romantico`
+- Desative com `.simsimi` sem argumento
+- 6 personalidades disponíveis: `divertido`, `serio`, `romantico`, `debochado`, `filosofo`, `animado`
+
+</details>
+
+<details>
+<summary><strong>🎨 Menu Personalizável — design único para o seu bot</strong></summary>
+
+O design do menu é totalmente configurável via comandos. As configurações são salvas em `dados/database/dono/menuDesign.json` e persistem entre reinicializações.
+
+Use `.designmenu` para abrir o painel de configuração e `.resetdesign` para restaurar o padrão.
+
+</details>
+
+<details>
+<summary><strong>⚙️ Comandos Personalizados — crie seus próprios com parâmetros</strong></summary>
+
+Crie comandos com parâmetros tipados, flags de permissão e respostas dinâmicas:
+
+```
+.addcmd saudacao [param:string:name:required] Olá {name}, bem-vindo ao {grupo}!
+.addcmd roll [param:number:count:required:min=1:max=100] Sorteando {count} vezes...
+.addcmd cor [param:enum:color:required:enum=red|green|blue] Você escolheu {color}.
+```
+
+**Flags:** `[owner]` `[admin]` `[group]` `[private]`
+
+Use `.listcmd` para ver todos os comandos criados.
+
+</details>
+
+<details>
+<summary><strong>👮 Sistema de Moderadores — delegue permissões sem dar admin</strong></summary>
+
+Adicione moderadores com `.addmod @user` e configure exatamente quais comandos eles podem usar com `.grantmodcmd [cmd]`. Ideal para delegar tarefas de moderação sem promover a administrador do WhatsApp.
+
+</details>
+
+---
+
+## 🔧 Solução de Problemas
+
+<details>
+<summary><strong>❓ Problemas comuns e como resolver</strong></summary>
+
+| Problema | Solução |
+|----------|---------|
+| QR code expira rápido | Reinicie com `npm start` e escaneie mais rápido, ou use código de pareamento |
+| Bot desconecta frequentemente | Verifique a conexão no Replit e reinicie o workflow |
+| SimSimi / IA não responde | Confirme que `GEMINI_API_KEY` está configurado nos Secrets do Replit |
+| Comandos ignorados no grupo | Verifique se `.antigp` ou `.botoff` está ativo |
+| Figurinha animada sem transparência | Os frames PNG devem ter fundo vermelho puro (`#FF0000`) |
+| Comando não encontrado | Confirme o prefixo correto (padrão: `.`) |
+| Bot não entra no grupo | Verifique se o link é válido e se `.bangp` não foi ativado |
+
+</details>
+
+---
+
+<div align="center">
+
+**Prefixo:** `.` &nbsp;|&nbsp; **IA:** Gemini 2.5 Flash Lite &nbsp;|&nbsp; **Mídia:** FFmpeg + ImageMagick v7 &nbsp;|&nbsp; **Comandos:** 1600+
+
+</div>
