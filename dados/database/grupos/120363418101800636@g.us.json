@@ -19,16 +19,16 @@
   "adminWhitelist": {},
   "roles": {},
   "roleMessages": {},
-  "groupName": "CLIENTES (ARLESON) GF ATACADO #13",
+  "groupName": "Ofertas Carrefour Vila Velha 6",
   "contador": [
     {
-      "id": "23519995936800@lid",
-      "msg": 48,
+      "id": "215366873645311@lid",
+      "msg": 25,
       "cmd": 0,
       "figu": 0,
-      "pushname": "Vendedor Arleson • GF ATACADO",
-      "firstSeen": "2026-03-06T13:55:32.452Z",
-      "lastActivity": "2026-03-06T23:43:18.123Z"
+      "pushname": "Erick Souza",
+      "firstSeen": "2026-03-06T15:16:40.351Z",
+      "lastActivity": "2026-03-07T15:49:32.673Z"
     }
   ]
 }

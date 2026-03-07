@@ -1,0 +1,53 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-06T10:32:50.742Z",
+  "groupName": "Fortkillers🎮🏹🎯⛏️⚒️",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "198599304585335@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "restaurante Sabor Único",
+      "firstSeen": "2026-03-06T10:32:50.743Z",
+      "lastActivity": "2026-03-06T10:32:50.743Z"
+    },
+    {
+      "id": "167057551290565@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 1,
+      "pushname": "Perpétua 🤣🧐",
+      "firstSeen": "2026-03-07T15:41:35.249Z",
+      "lastActivity": "2026-03-07T15:41:35.249Z"
+    },
+    {
+      "id": "66537666953282@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Reeh🍒",
+      "firstSeen": "2026-03-07T15:44:57.647Z",
+      "lastActivity": "2026-03-07T15:44:57.647Z"
+    },
+    {
+      "id": "55242439844042@lid",
+      "msg": 10,
+      "cmd": 0,
+      "figu": 4,
+      "pushname": "Xandy",
+      "firstSeen": "2026-03-07T15:46:08.375Z",
+      "lastActivity": "2026-03-07T15:48:37.511Z"
+    }
+  ]
+}
