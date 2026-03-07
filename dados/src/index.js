@@ -31033,9 +31033,15 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
         };
         if (!isCmd && isGroup && isSimsimi && body && body.trim() && !info.key.fromMe) {
           try {
-            const geminiKey = process.env.GEMINI_API_KEY;
-            if (!geminiKey) {
-              console.warn('[SimSimi] GEMINI_API_KEY não configurada.');
+            const geminiKeys = [
+              process.env.GEMINI_API_KEY,
+              process.env.GEMINI_API_KEY_2,
+              process.env.GEMINI_API_KEY_3,
+              process.env.GEMINI_API_KEY_4,
+              process.env.GEMINI_API_KEY_5,
+            ].filter(Boolean);
+            if (geminiKeys.length === 0) {
+              console.warn('[SimSimi] Nenhuma GEMINI_API_KEY configurada.');
             } else {
               const simsimiPrompts = {
                 divertido:  'Você é SimSimi, um chatbot divertido, engraçado e descontraído. Responda de forma curta e casual em português brasileiro. Máximo 2 frases. Nunca diga que é uma IA.',
@@ -31047,18 +31053,32 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
               };
               const personalidade = groupData.simsimiPersonalidade || 'divertido';
               const systemPrompt = simsimiPrompts[personalidade] || simsimiPrompts.divertido;
-              const simResp = await axios.post(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKey}`,
-                {
-                  contents: [{ parts: [{ text: body.trim() }] }],
-                  systemInstruction: { parts: [{ text: systemPrompt }] },
-                  generationConfig: { maxOutputTokens: 150, temperature: 0.9 }
-                },
-                { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
-              );
-              const simText = simResp.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (simText && simText.trim()) {
-                await nazu.sendMessage(from, { text: simText.trim() }, { quoted: info });
+              let simText = null;
+              for (let i = 0; i < geminiKeys.length; i++) {
+                const keyLabel = i === 0 ? 'GEMINI_API_KEY' : `GEMINI_API_KEY_${i + 1}`;
+                try {
+                  const simResp = await axios.post(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKeys[i]}`,
+                    {
+                      contents: [{ parts: [{ text: body.trim() }] }],
+                      systemInstruction: { parts: [{ text: systemPrompt }] },
+                      generationConfig: { maxOutputTokens: 150, temperature: 0.9 }
+                    },
+                    { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
+                  );
+                  const candidate = simResp.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                  if (candidate && candidate.trim()) {
+                    simText = candidate.trim();
+                    if (i > 0) console.log(`[SimSimi] Respondeu usando ${keyLabel} (fallback).`);
+                    break;
+                  }
+                } catch (keyErr) {
+                  const status = keyErr.response?.status;
+                  console.warn(`[SimSimi] ${keyLabel} falhou (${status || keyErr.message})${i + 1 < geminiKeys.length ? ', tentando próxima...' : '.'}`);
+                }
+              }
+              if (simText) {
+                await nazu.sendMessage(from, { text: simText }, { quoted: info });
               }
             }
           } catch (simErr) {
