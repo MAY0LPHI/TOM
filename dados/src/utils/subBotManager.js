@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import { buildUserId, getLidFromJidCached, getUserName } from './helpers.js';
+import { logSubBotEvent } from './subBotLogger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -146,6 +147,7 @@ function createSubBotConfig(botId, phoneNumber, ownerNumber) {
 async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairingCode = false) {
     try {
         console.log(`🤖 Inicializando sub-bot ${botId}...`);
+        logSubBotEvent(botId, 'INICIALIZANDO', `Número: ${phoneNumber}`);
 
         const { config, dirs } = createSubBotConfig(botId, phoneNumber, ownerNumber);
         
@@ -211,6 +213,7 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
 
             if (connection === 'open') {
                 console.log(`✅ Sub-bot ${botId} conectado com sucesso!`);
+                logSubBotEvent(botId, 'CONECTADO', `Sub-bot ${botId} conectado com sucesso`);
                 
                 const subbots = loadSubBots();
                 if (subbots[botId]) {
@@ -233,6 +236,7 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
             if (connection === 'close') {
                 const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
                 console.log(`❌ Sub-bot ${botId} desconectado. Código: ${reason}`);
+                logSubBotEvent(botId, 'DESCONECTADO', `Código: ${reason}`);
 
                 activeSubBots.delete(botId);
 
@@ -267,6 +271,32 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
             }
         });
 
+        // Cache de grupos onde o bot principal está presente (TTL: 5 minutos)
+        const mainBotGroupCache = new Map();
+        const MAIN_BOT_CACHE_TTL = 5 * 60 * 1000;
+
+        async function isMainBotInGroup(groupJid) {
+            const mainBotJid = process.env.MAIN_BOT_JID;
+            if (!mainBotJid) return false;
+            if (!groupJid || !groupJid.endsWith('@g.us')) return false;
+
+            const cached = mainBotGroupCache.get(groupJid);
+            if (cached && (Date.now() - cached.time) < MAIN_BOT_CACHE_TTL) {
+                return cached.present;
+            }
+
+            try {
+                const meta = await sock.groupMetadata(groupJid).catch(() => null);
+                const participants = meta?.participants?.map(p => p.id) || [];
+                const mainBotBase = mainBotJid.split('@')[0];
+                const present = participants.some(p => p.split('@')[0] === mainBotBase || p.split(':')[0] === mainBotBase);
+                mainBotGroupCache.set(groupJid, { present, time: Date.now() });
+                return present;
+            } catch {
+                return false;
+            }
+        }
+
         // Handler de mensagens - processa comandos
         sock.ev.on('messages.upsert', async (m) => {
             if (!m.messages || m.type !== 'notify') return;
@@ -277,29 +307,22 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
                     
                     // Ignora mensagens próprias do bot
                     if (info.key.fromMe) continue;
+
+                    // Se o bot principal também está no grupo, deixa ele responder
+                    const remoteJid = info.key.remoteJid;
+                    if (remoteJid.endsWith('@g.us')) {
+                        const mainBotPresent = await isMainBotInGroup(remoteJid);
+                        if (mainBotPresent) continue;
+                    }
                     
                     console.log(`📨 Sub-bot ${botId} processando mensagem de ${info.key.remoteJid}`);
-                    
-                    // Define o caminho do config do sub-bot temporariamente
-                    const originalConfigPath = process.env.CONFIG_PATH;
-                    const originalDatabasePath = process.env.DATABASE_PATH;
-                    const originalIsSubbot = process.env.IS_SUBBOT;
-                    const originalSubbotId = process.env.SUBBOT_ID;
+                    logSubBotEvent(botId, 'MENSAGEM', `De: ${info.key.remoteJid}`);
                     
                     const subBotConfigPath = path.join(dirs.databaseDir, 'config.json');
                     
-                    // IMPORTANTE: Define as variáveis ANTES de importar qualquer módulo
-                    process.env.CONFIG_PATH = subBotConfigPath;
-                    process.env.DATABASE_PATH = dirs.databaseDir;
-                    process.env.IS_SUBBOT = 'true';
-                    process.env.SUBBOT_ID = botId;
-                    
                     try {
-                        // Carrega o módulo de processamento (import dinâmico)
-                        // As variáveis de ambiente devem estar definidas antes deste import
                         const indexModule = await import('../index.js');
                         
-                        // Obtém a função default exportada
                         const NazuninhaBotExec = indexModule.default || indexModule;
                         
                         if (typeof NazuninhaBotExec !== 'function') {
@@ -308,47 +331,25 @@ async function initializeSubBot(botId, phoneNumber, ownerNumber, generatePairing
                             continue;
                         }
                         
-                        // Cria um cache simples para este sub-bot usando Map (compatível com bot principal)
                         const messagesCache = new Map();
                         
-                        // Chave composta: remoteJid_messageId para permitir filtrar por grupo
                         if (info.key?.id && info.key?.remoteJid) {
                             const cacheKey = `${info.key.remoteJid}_${info.key.id}`;
                             messagesCache.set(cacheKey, info);
                         }
                         
-                        // Processa a mensagem usando a mesma lógica do bot principal
-                        await NazuninhaBotExec(sock, info, null, messagesCache, null);
+                        // Passa o caminho do config diretamente, sem usar process.env (evita conflito com bot principal)
+                        await NazuninhaBotExec(sock, info, null, messagesCache, null, subBotConfigPath);
                     } catch (importError) {
                         console.error(`❌ Erro ao importar/executar processamento no sub-bot ${botId}:`, importError.message);
                         console.error(`Stack trace:`, importError.stack);
-                    } finally {
-                        // Restaura o config original
-                        if (originalConfigPath !== undefined) {
-                            process.env.CONFIG_PATH = originalConfigPath;
-                        } else {
-                            delete process.env.CONFIG_PATH;
-                        }
-                        if (originalDatabasePath !== undefined) {
-                            process.env.DATABASE_PATH = originalDatabasePath;
-                        } else {
-                            delete process.env.DATABASE_PATH;
-                        }
-                        if (originalIsSubbot !== undefined) {
-                            process.env.IS_SUBBOT = originalIsSubbot;
-                        } else {
-                            delete process.env.IS_SUBBOT;
-                        }
-                        if (originalSubbotId !== undefined) {
-                            process.env.SUBBOT_ID = originalSubbotId;
-                        } else {
-                            delete process.env.SUBBOT_ID;
-                        }
+                        logSubBotEvent(botId, 'ERRO', importError.message);
                     }
                 }
             } catch (error) {
                 console.error(`❌ Erro geral ao processar mensagem no sub-bot ${botId}:`, error.message);
                 console.error(`Stack trace:`, error.stack);
+                logSubBotEvent(botId, 'ERRO_GERAL', error.message);
             }
         });
 
@@ -676,8 +677,14 @@ async function generatePairingCodeForSubBot(userLid) {
     try {
         const subbots = loadSubBots();
         
-        // Encontra o sub-bot pelo LID
-        const botEntry = Object.entries(subbots).find(([_, bot]) => bot.subBotLid === userLid);
+        // Extrai o número de telefone do userLid (caso seja JID como fallback)
+        const userPhone = userLid ? userLid.split('@')[0].split(':')[0] : null;
+        
+        // Encontra o sub-bot pelo LID ou pelo número de telefone (fallback quando LID não foi resolvido)
+        const botEntry = Object.entries(subbots).find(([_, bot]) => 
+            bot.subBotLid === userLid || 
+            (userPhone && bot.phoneNumber === userPhone)
+        );
         
         if (!botEntry) {
             return {

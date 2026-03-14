@@ -6,8 +6,44 @@
 
 import axios from 'axios';
 import { createDecipheriv } from 'crypto';
+import { execFile } from 'child_process';
+import { writeFile, readFile, unlink } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import yts from 'yt-search';
 import { ytDownload as localYtDownload, ytInfo as localYtInfo, ytSearch as localYtSearch } from '../../../local-api/downloads.js';
+
+// ============================================
+// CONVERSÃO FFMPEG
+// ============================================
+
+async function convertBufferToMp3(inputBuffer) {
+  const timestamp = Date.now();
+  const tmpIn = join(tmpdir(), `yt_in_${timestamp}.tmp`);
+  const tmpOut = join(tmpdir(), `yt_out_${timestamp}.mp3`);
+  try {
+    await writeFile(tmpIn, inputBuffer);
+    await new Promise((resolve, reject) => {
+      execFile('ffmpeg', [
+        '-y', '-i', tmpIn,
+        '-vn',
+        '-ar', '44100',
+        '-ac', '2',
+        '-b:a', '128k',
+        '-f', 'mp3',
+        tmpOut
+      ], { timeout: 60000 }, (error) => {
+        if (error) reject(error);
+        else resolve();
+      });
+    });
+    const output = await readFile(tmpOut);
+    return output;
+  } finally {
+    await unlink(tmpIn).catch(() => {});
+    await unlink(tmpOut).catch(() => {});
+  }
+}
 
 // ============================================
 // CONFIGURAÇÕES
@@ -31,7 +67,7 @@ const CONFIG = {
 const providerState = {
   cooldowns: new Map(),      // provider -> timestamp até quando está em cooldown
   failureCounts: new Map(),  // provider -> número de falhas consecutivas
-  methodOrder: ['ytdlp', 'nayan', 'adonix', 'oceansaver', 'y2mate', 'savetube'] // ordem dinâmica
+  methodOrder: ['ytdlp', 'nayan'] // local primeiro, nayan como fallback
 };
 
 // Cache simples
@@ -166,7 +202,29 @@ function analyzeError(errorMessage) {
 // PROVIDER: YT-DLP (LOCAL - PRIMÁRIO)
 // ============================================
 
+let ytdlpAvailable = null;
+
+const YTDLP_BIN = '/home/runner/.local/bin/yt-dlp';
+
+async function checkYtdlpAvailable() {
+  if (ytdlpAvailable !== null) return ytdlpAvailable;
+  try {
+    await new Promise((resolve, reject) => {
+      execFile(YTDLP_BIN, ['--version'], { timeout: 5000 }, (err) => err ? reject(err) : resolve());
+    });
+    ytdlpAvailable = true;
+    console.log('✅ [yt-dlp] Disponível no sistema');
+  } catch {
+    ytdlpAvailable = false;
+    console.log('⚠️ [yt-dlp] Não instalado, usando apenas provedores online');
+  }
+  return ytdlpAvailable;
+}
+
 async function downloadWithYtdlp(url, format = 'mp3') {
+  if (!await checkYtdlpAvailable()) {
+    return { success: false, error: 'yt-dlp não instalado', source: 'ytdlp' };
+  }
   try {
     console.log(`🖥️ [yt-dlp] Baixando ${format}...`);
     const result = await localYtDownload(url, format === 'mp3' ? 'audio' : 'video', '720');
@@ -644,15 +702,12 @@ async function downloadWithFallbacks(url, format = 'mp3') {
 
       if (result?.success) {
         console.log(`✅ Sucesso com ${providerName}!`);
-        
-        // Resetar falhas e promover provider
         resetProviderFailures(providerName);
-        promoteProviderToFirst(providerName);
-        
+
         if (errors.length > 0) {
           console.log(`📊 Sucesso após ${errors.length} tentativas falhadas`);
         }
-        
+
         return result;
       } else {
         throw new Error(result?.error || 'Falha desconhecida');
@@ -660,16 +715,14 @@ async function downloadWithFallbacks(url, format = 'mp3') {
     } catch (error) {
       const errorMessage = error?.message || 'Erro desconhecido';
       const errorAnalysis = analyzeError(errorMessage);
-      
+
       errors.push({
         provider: providerName,
         error: errorMessage,
         analysis: errorAnalysis
       });
 
-      // Registrar falha e rebaixar provider
       recordProviderFailure(providerName, errorMessage.slice(0, 120));
-      demoteProviderToLast(providerName);
 
       if (errorAnalysis.videoUnavailable) videoUnavailableCount++;
       if (errorAnalysis.networkError) networkErrorCount++;
@@ -811,9 +864,18 @@ async function mp3(url, _quality = 'mp3') {
       };
     }
 
+    let finalBuffer = result.buffer;
+    try {
+      console.log(`🔄 [mp3] Convertendo para MP3 com ffmpeg...`);
+      finalBuffer = await convertBufferToMp3(result.buffer);
+      console.log(`✅ [mp3] Conversão concluída (${finalBuffer.length} bytes)`);
+    } catch (convErr) {
+      console.warn(`⚠️ [mp3] ffmpeg falhou, usando buffer original: ${convErr.message}`);
+    }
+
     const downloadResult = {
       criador: 'Hiudy',
-      buffer: result.buffer,
+      buffer: finalBuffer,
       title: result.title,
       thumbnail: result.thumbnail,
       quality: result.quality || 'mp3',

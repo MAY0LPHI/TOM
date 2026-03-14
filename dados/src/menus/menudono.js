@@ -36,6 +36,10 @@ ${middleBorder}${menuItemIcon}${prefix}nomebot
 
 ${middleBorder}${menuItemIcon}${prefix}configcmdnotfound
 ${middleBorder}${menuItemIcon}${prefix}setcmdmsg
+${middleBorder}${menuItemIcon}${prefix}addgeminikey
+${middleBorder}${menuItemIcon}${prefix}delgeminikey
+${middleBorder}${menuItemIcon}${prefix}listgeminikeys
+${middleBorder}
 ${middleBorder}${menuItemIcon}${prefix}fotobot
 ${middleBorder}${menuItemIcon}${prefix}fotomenu
 ${middleBorder}${menuItemIcon}${prefix}videomenu
@@ -139,6 +143,20 @@ ${middleBorder}${menuItemIcon}${prefix}listarsubbots
 ${middleBorder}${menuItemIcon}${prefix}conectarsubbot
 ${middleBorder}
 ${middleBorder}🔑 Sub-bot use: ${prefix}gerarcodigo
+${middleBorder}
+${middleBorder}${menuTitleIcon} *Donos Globais:*
+${middleBorder}${menuItemIcon}${prefix}adddonog
+${middleBorder}${menuItemIcon}${prefix}remdonog
+${middleBorder}${menuItemIcon}${prefix}listdonog
+${middleBorder}
+${middleBorder}${menuTitleIcon} *Bloqueios Globais:*
+${middleBorder}${menuItemIcon}${prefix}addblacklist
+${middleBorder}${menuItemIcon}${prefix}delblacklist
+${middleBorder}${menuItemIcon}${prefix}blockcmdg
+${middleBorder}${menuItemIcon}${prefix}unblockcmdg
+${middleBorder}${menuItemIcon}${prefix}blockuserg
+${middleBorder}${menuItemIcon}${prefix}unblockuserg
+${middleBorder}${menuItemIcon}${prefix}listblocks
 ${bottomBorder}
 
 ${menuTopBorder}${separatorIcon} *${vipSystemMenuTitle}*

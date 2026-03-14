@@ -41,8 +41,23 @@ import {
   MENU_AUDIO_FILE,
   MENU_LERMAIS_FILE,
   SUPPORT_TICKETS_FILE,
-  CONFIG_FILE
+  CONFIG_FILE,
+  SHARED_DIR,
+  SHARED_BLACKLIST_FILE,
+  SHARED_BLOCKS_FILE,
+  SHARED_OWNERS_FILE
 } from './paths.js';
+
+import { AsyncLocalStorage } from 'async_hooks';
+
+export const botPathsContext = new AsyncLocalStorage();
+
+const effPath = (p) => {
+  const store = botPathsContext.getStore();
+  if (!store) return p;
+  return store.get(p) ?? p;
+};
+
 
 ensureDirectoryExists(GRUPOS_DIR);
 ensureDirectoryExists(USERS_DIR);
@@ -97,6 +112,18 @@ ensureJsonFileExists(CUSTOM_COMMANDS_FILE, {
 ensureJsonFileExists(GLOBAL_BLACKLIST_FILE, {
   users: {},
   groups: {}
+});
+ensureDirectoryExists(SHARED_DIR);
+ensureJsonFileExists(SHARED_BLACKLIST_FILE, {
+  users: {},
+  groups: {}
+});
+ensureJsonFileExists(SHARED_BLOCKS_FILE, {
+  commands: {},
+  users: {}
+});
+ensureJsonFileExists(SHARED_OWNERS_FILE, {
+  owners: []
 });
 ensureJsonFileExists(DONO_DIVULGACAO_FILE, {
   groups: [],
@@ -471,13 +498,13 @@ const runDatabaseSelfTest = ({ log = false } = {}) => {
 };
 
 const loadMsgPrefix = () => {
-  return loadJsonFile(MSGPREFIX_FILE, { message: false }).message;
+  return loadJsonFile(effPath(MSGPREFIX_FILE), { message: false }).message;
 };
 
 const saveMsgPrefix = (message) => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(MSGPREFIX_FILE, JSON.stringify({ message }, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(MSGPREFIX_FILE), JSON.stringify({ message }, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar msgprefix:', error);
@@ -486,11 +513,9 @@ const saveMsgPrefix = (message) => {
 };
 
 const loadMsgBotOn = () => {
-  // Carrega config para verificar o número do dono
   let currentOwner = null;
   try {
-    const configPath = path.join(__dirname, '..', 'config.json');
-    const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const configData = JSON.parse(fs.readFileSync(effPath(CONFIG_FILE), 'utf8'));
     currentOwner = configData.numerodono;
   } catch (e) {
     console.error('Erro ao ler config.json em loadMsgBotOn:', e.message);
@@ -498,7 +523,7 @@ const loadMsgBotOn = () => {
   
   const defaultEnabled = currentOwner === '553391967445' ? false : true;
   
-  const data = loadJsonFile(MSGBOTON_FILE, { 
+  const data = loadJsonFile(effPath(MSGBOTON_FILE), { 
     enabled: defaultEnabled,
     message: `✨ *Oiiiii!* ✨
 
@@ -518,7 +543,7 @@ _Para desativar esta mensagem de inicialização, use o comando *msgboton*_`
 
 const saveMsgBotOn = (enabled, message = null) => {
   try {
-    ensureDirectoryExists(DONO_DIR);
+    ensureDirectoryExists(effPath(DONO_DIR));
     const currentData = loadMsgBotOn();
     
     const newData = {
@@ -526,7 +551,7 @@ const saveMsgBotOn = (enabled, message = null) => {
       message: message || currentData.message
     };
     
-    fs.writeFileSync(MSGBOTON_FILE, JSON.stringify(newData, null, 2));
+    fs.writeFileSync(effPath(MSGBOTON_FILE), JSON.stringify(newData, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar msgboton:', error);
@@ -535,7 +560,7 @@ const saveMsgBotOn = (enabled, message = null) => {
 };
 
 const loadCmdNotFoundConfig = () => {
-  return loadJsonFile(CMD_NOT_FOUND_FILE, {
+  return loadJsonFile(effPath(CMD_NOT_FOUND_FILE), {
     enabled: true,
     message: '❌ Comando não encontrado! Tente {prefix}menu para ver todos os comandos disponíveis.',
     style: 'friendly',
@@ -550,7 +575,7 @@ const loadCmdNotFoundConfig = () => {
 };
 
 const loadRelationships = () => {
-  return loadJsonFile(RELATIONSHIPS_FILE, {
+  return loadJsonFile(effPath(RELATIONSHIPS_FILE), {
     pairs: {}
   });
 };
@@ -559,8 +584,8 @@ const saveRelationships = (data = {
   pairs: {}
 }) => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(RELATIONSHIPS_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(RELATIONSHIPS_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar dados de relacionamento:', error);
@@ -571,13 +596,13 @@ const saveRelationships = (data = {
 // ============== SISTEMA DE TICKETS DE SUPORTE ==============
 
 const loadSupportTicketsData = () => {
-  return loadJsonFile(SUPPORT_TICKETS_FILE, { groups: {} });
+  return loadJsonFile(effPath(SUPPORT_TICKETS_FILE), { groups: {} });
 };
 
 const saveSupportTicketsData = (data) => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(SUPPORT_TICKETS_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(SUPPORT_TICKETS_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar tickets de suporte:', error);
@@ -715,7 +740,7 @@ const acceptSupportTicket = (ticketId, adminId) => {
 
 const saveCmdNotFoundConfig = (config, action = 'update') => {
   try {
-    ensureDirectoryExists(DONO_DIR);
+    ensureDirectoryExists(effPath(DONO_DIR));
     const validatedConfig = {
       enabled: typeof config.enabled === 'boolean' ? config.enabled : true,
       message: config.message || '❌ Comando não encontrado! Tente {prefix}menu para ver todos os comandos disponíveis.',
@@ -729,7 +754,7 @@ const saveCmdNotFoundConfig = (config, action = 'update') => {
       },
       lastUpdated: new Date().toISOString()
     };
-    fs.writeFileSync(CMD_NOT_FOUND_FILE, JSON.stringify(validatedConfig, null, 2));
+    fs.writeFileSync(effPath(CMD_NOT_FOUND_FILE), JSON.stringify(validatedConfig, null, 2));
     
     const logMessage = `🔧 Configuração de comando não encontrado ${action}:\n` +
       `• Status: ${validatedConfig.enabled ? 'ATIVADO' : 'DESATIVADO'}\n` +
@@ -797,13 +822,13 @@ const formatMessageWithFallback = (template, variables, fallbackMessage) => {
 };
 
 const loadCustomReacts = () => {
-  return loadJsonFile(CUSTOM_REACTS_FILE, { reacts: [] }).reacts || [];
+  return loadJsonFile(effPath(CUSTOM_REACTS_FILE), { reacts: [] }).reacts || [];
 };
 
 const saveCustomReacts = (reacts) => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(CUSTOM_REACTS_FILE, JSON.stringify({ reacts }, null, 2));
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(CUSTOM_REACTS_FILE), JSON.stringify({ reacts }, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar custom reacts:', error);
@@ -812,13 +837,13 @@ const saveCustomReacts = (reacts) => {
 };
 
 const loadReminders = () => {
-  return loadJsonFile(REMINDERS_FILE, { reminders: [] }).reminders || [];
+  return loadJsonFile(effPath(REMINDERS_FILE), { reminders: [] }).reminders || [];
 };
 
 const saveReminders = (reminders) => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(REMINDERS_FILE, JSON.stringify({ reminders }, null, 2));
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(REMINDERS_FILE), JSON.stringify({ reminders }, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar lembretes:', error);
@@ -844,13 +869,13 @@ const deleteCustomReact = (id) => {
 };
 
 const loadDivulgacao = () => {
-  return loadJsonFile(DIVULGACAO_FILE, { savedMessage: "" });
+  return loadJsonFile(effPath(DIVULGACAO_FILE), { savedMessage: "" });
 };
 
 const saveDivulgacao = (data) => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(DIVULGACAO_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(DIVULGACAO_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar divulgação.json:', error);
@@ -859,7 +884,7 @@ const saveDivulgacao = (data) => {
 };
 
 const loadDonoDivulgacao = () => {
-  return loadJsonFile(DONO_DIVULGACAO_FILE, {
+  return loadJsonFile(effPath(DONO_DIVULGACAO_FILE), {
     groups: [],
     message: '',
     schedule: {
@@ -878,8 +903,8 @@ const loadDonoDivulgacao = () => {
 
 const saveDonoDivulgacao = (data) => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(DONO_DIVULGACAO_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(DONO_DIVULGACAO_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar divulgacao_dono.json:', error);
@@ -888,15 +913,15 @@ const saveDonoDivulgacao = (data) => {
 };
 
 const loadSubdonos = () => {
-  return loadJsonFile(SUBDONOS_FILE, {
+  return loadJsonFile(effPath(SUBDONOS_FILE), {
     subdonos: []
   }).subdonos || [];
 };
 
 const saveSubdonos = subdonoList => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(SUBDONOS_FILE, JSON.stringify({
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(SUBDONOS_FILE), JSON.stringify({
       subdonos: subdonoList
     }, null, 2));
     return true;
@@ -954,7 +979,7 @@ const addSubdono = async (userId, numerodono, nazu = null) => {
   }
   
   // Carrega config localmente para não depender de variável global
-  const config = loadJsonFile(CONFIG_FILE, {});
+  const config = loadJsonFile(effPath(CONFIG_FILE), {});
   const nmrdn_check = buildUserId(numerodono, config);
   const ownerJid = `${numerodono}@s.whatsapp.net`;
   const ownerBase = numerodono.toString().replace(/\D/g, '');
@@ -1047,7 +1072,7 @@ const getSubdonos = () => {
 };
 
 const loadRentalData = () => {
-  return loadJsonFile(ALUGUEIS_FILE, {
+  return loadJsonFile(effPath(ALUGUEIS_FILE), {
     globalMode: false,
     groups: {}
   });
@@ -1055,8 +1080,8 @@ const loadRentalData = () => {
 
 const saveRentalData = data => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(ALUGUEIS_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(ALUGUEIS_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar dados de aluguel:', error);
@@ -1156,15 +1181,15 @@ const setGroupRental = (groupId, durationDays) => {
 };
 
 const loadActivationCodes = () => {
-  return loadJsonFile(CODIGOS_ALUGUEL_FILE, {
+  return loadJsonFile(effPath(CODIGOS_ALUGUEL_FILE), {
     codes: {}
   });
 };
 
 const saveActivationCodes = data => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(CODIGOS_ALUGUEL_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(CODIGOS_ALUGUEL_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar códigos de ativação:', error);
@@ -1356,7 +1381,7 @@ const isModoLiteActive = (groupData, modoLiteGlobalConfig) => {
 };
 
 const loadParceriasData = groupId => {
-  const filePath = pathz.join(PARCERIAS_DIR, `${groupId}.json`);
+  const filePath = pathz.join(effPath(PARCERIAS_DIR), `${groupId}.json`);
   return loadJsonFile(filePath, {
     active: false,
     partners: {}
@@ -1364,7 +1389,7 @@ const loadParceriasData = groupId => {
 };
 
 const saveParceriasData = (groupId, data) => {
-  const filePath = pathz.join(PARCERIAS_DIR, `${groupId}.json`);
+  const filePath = pathz.join(effPath(PARCERIAS_DIR), `${groupId}.json`);
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     return true;
@@ -1391,7 +1416,7 @@ function getPatent(level, patents) {
 function loadEconomy() {
   const defaultEconomy = { users: {}, shop: {}, jobCatalog: {}, stockMarket: {}, treasury: 0, auctions: [], lottery: null };
   try {
-    const data = loadJsonFileSafe(ECONOMY_FILE, defaultEconomy);
+    const data = loadJsonFileSafe(effPath(ECONOMY_FILE), defaultEconomy);
     
     // Valida estrutura básica
     if (!data || typeof data !== 'object') return defaultEconomy;
@@ -1423,7 +1448,7 @@ function saveEconomy(data) {
     }
     
     // Usa função segura com backup automático
-    return saveJsonFileSafe(ECONOMY_FILE, data, true);
+    return saveJsonFileSafe(effPath(ECONOMY_FILE), data, true);
   } catch (e) { 
     console.error('❌ Erro ao salvar economy.json:', e.message); 
     return false; 
@@ -2164,7 +2189,7 @@ const DEFAULT_LEVELING_STRUCTURE = {
  */
 function loadLevelingSafe() {
   try {
-    const data = loadJsonFileSafe(LEVELING_FILE, DEFAULT_LEVELING_STRUCTURE, DEFAULT_LEVELING_STRUCTURE);
+    const data = loadJsonFileSafe(effPath(LEVELING_FILE), DEFAULT_LEVELING_STRUCTURE, DEFAULT_LEVELING_STRUCTURE);
     
     // Validações adicionais
     if (!data || typeof data !== 'object') {
@@ -2213,7 +2238,7 @@ function saveLevelingSafe(data) {
     data.users = data.users || {};
     data.patents = data.patents || DEFAULT_PATENTS;
     
-    return saveJsonFileSafe(LEVELING_FILE, data, true);
+    return saveJsonFileSafe(effPath(LEVELING_FILE), data, true);
   } catch (error) {
     console.error('❌ Erro ao salvar leveling:', error.message);
     return false;
@@ -2320,15 +2345,15 @@ function checkLevelDown(userId, userData, levelingData) {
 }
 
 const loadCustomAutoResponses = () => {
-  return loadJsonFile(CUSTOM_AUTORESPONSES_FILE, {
+  return loadJsonFile(effPath(CUSTOM_AUTORESPONSES_FILE), {
     responses: []
   }).responses || [];
 };
 
 const saveCustomAutoResponses = responses => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(CUSTOM_AUTORESPONSES_FILE, JSON.stringify({
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(CUSTOM_AUTORESPONSES_FILE), JSON.stringify({
       responses
     }, null, 2));
     return true;
@@ -2340,7 +2365,7 @@ const saveCustomAutoResponses = responses => {
 
 const loadCustomCommands = () => {
   try {
-    const data = loadJsonFile(CUSTOM_COMMANDS_FILE, { commands: [] });
+    const data = loadJsonFile(effPath(CUSTOM_COMMANDS_FILE), { commands: [] });
     return Array.isArray(data.commands) ? data.commands : [];
   } catch (error) {
     console.error('❌ Erro ao carregar comandos personalizados:', error);
@@ -2350,8 +2375,8 @@ const loadCustomCommands = () => {
 
 const saveCustomCommands = (commands) => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(CUSTOM_COMMANDS_FILE, JSON.stringify({ commands }, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(CUSTOM_COMMANDS_FILE), JSON.stringify({ commands }, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar comandos personalizados:', error);
@@ -2388,14 +2413,14 @@ const findCustomCommand = (trigger) => {
 
 // Funções para auto-respostas com suporte a mídia
 const loadGroupAutoResponses = (groupId) => {
-  const groupFile = pathz.join(GRUPOS_DIR, `${groupId}.json`);
+  const groupFile = pathz.join(effPath(GRUPOS_DIR), `${groupId}.json`);
   const groupData = loadJsonFile(groupFile, {});
   return groupData.autoResponses || [];
 };
 
 const saveGroupAutoResponses = (groupId, autoResponses) => {
   try {
-    const groupFile = pathz.join(GRUPOS_DIR, `${groupId}.json`);
+    const groupFile = pathz.join(effPath(GRUPOS_DIR), `${groupId}.json`);
     let groupData = loadJsonFile(groupFile, {});
     groupData.autoResponses = autoResponses;
     fs.writeFileSync(groupFile, JSON.stringify(groupData, null, 2));
@@ -2551,15 +2576,15 @@ const sendAutoResponse = async (nazu, from, response, quotedMessage) => {
 };
 
 const loadNoPrefixCommands = () => {
-  return loadJsonFile(NO_PREFIX_COMMANDS_FILE, {
+  return loadJsonFile(effPath(NO_PREFIX_COMMANDS_FILE), {
     commands: []
   }).commands || [];
 };
 
 const saveNoPrefixCommands = commands => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(NO_PREFIX_COMMANDS_FILE, JSON.stringify({
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(NO_PREFIX_COMMANDS_FILE), JSON.stringify({
       commands
     }, null, 2));
     return true;
@@ -2570,15 +2595,15 @@ const saveNoPrefixCommands = commands => {
 };
 
 const loadCommandAliases = () => {
-  return loadJsonFile(COMMAND_ALIASES_FILE, {
+  return loadJsonFile(effPath(COMMAND_ALIASES_FILE), {
     aliases: []
   }).aliases || [];
 };
 
 const saveCommandAliases = aliases => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(COMMAND_ALIASES_FILE, JSON.stringify({
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(COMMAND_ALIASES_FILE), JSON.stringify({
       aliases
     }, null, 2));
     return true;
@@ -2589,16 +2614,18 @@ const saveCommandAliases = aliases => {
 };
 
 const loadGlobalBlacklist = () => {
-  return loadJsonFile(GLOBAL_BLACKLIST_FILE, {
-    users: {},
-    groups: {}
-  });
+  const shared = loadJsonFile(SHARED_BLACKLIST_FILE, { users: {}, groups: {} });
+  const local  = loadJsonFile(effPath(GLOBAL_BLACKLIST_FILE), { users: {}, groups: {} });
+  return {
+    users:  { ...local.users,  ...shared.users  },
+    groups: { ...local.groups, ...shared.groups }
+  };
 };
 
 const saveGlobalBlacklist = data => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(GLOBAL_BLACKLIST_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(SHARED_DIR);
+    fs.writeFileSync(SHARED_BLACKLIST_FILE, JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar blacklist global:', error);
@@ -2698,10 +2725,51 @@ const getGlobalBlacklist = () => {
   return loadGlobalBlacklist();
 };
 
+const loadSharedOwners = () => {
+  const data = loadJsonFile(SHARED_OWNERS_FILE, { owners: [] });
+  return Array.isArray(data.owners) ? data.owners : [];
+};
+
+const saveSharedOwners = (owners) => {
+  try {
+    ensureDirectoryExists(SHARED_DIR);
+    fs.writeFileSync(SHARED_OWNERS_FILE, JSON.stringify({ owners }, null, 2));
+    return true;
+  } catch (e) {
+    console.error('❌ Erro ao salvar donos globais:', e.message);
+    return false;
+  }
+};
+
+const addSharedOwner = (id) => {
+  if (!id) return { success: false, message: 'ID inválido.' };
+  const owners = loadSharedOwners();
+  if (owners.some(o => o === id || o.split('@')[0] === id.split('@')[0])) {
+    return { success: false, message: `@${id.split('@')[0]} já é dono global.` };
+  }
+  owners.push(id);
+  const saved = saveSharedOwners(owners);
+  return saved
+    ? { success: true,  message: `✅ @${id.split('@')[0]} adicionado como dono global! Todos os sub-bots reconhecerão ele como dono.` }
+    : { success: false, message: '❌ Erro ao salvar.' };
+};
+
+const removeSharedOwner = (id) => {
+  if (!id) return { success: false, message: 'ID inválido.' };
+  let owners = loadSharedOwners();
+  const before = owners.length;
+  owners = owners.filter(o => o !== id && o.split('@')[0] !== id.split('@')[0]);
+  if (owners.length === before) return { success: false, message: `@${id.split('@')[0]} não é dono global.` };
+  const saved = saveSharedOwners(owners);
+  return saved
+    ? { success: true,  message: `✅ @${id.split('@')[0]} removido dos donos globais.` }
+    : { success: false, message: '❌ Erro ao salvar.' };
+};
+
 const loadMenuDesign = () => {
   try {
-    if (fs.existsSync(MENU_DESIGN_FILE)) {
-      return JSON.parse(fs.readFileSync(MENU_DESIGN_FILE, 'utf-8'));
+    if (fs.existsSync(effPath(MENU_DESIGN_FILE))) {
+      return JSON.parse(fs.readFileSync(effPath(MENU_DESIGN_FILE), 'utf-8'));
     } else {
       return {
         header: `╔══「 💀 *{botName}* 💀 」══╗\n║  👾 *{userName}*\n╚══[ 🔐 SISTEMA ATIVO ]══╝`,
@@ -2729,8 +2797,8 @@ const loadMenuDesign = () => {
 
 const saveMenuDesign = (design) => {
   try {
-    ensureDirectoryExists(DONO_DIR);
-    fs.writeFileSync(MENU_DESIGN_FILE, JSON.stringify(design, null, 2));
+    ensureDirectoryExists(effPath(DONO_DIR));
+    fs.writeFileSync(effPath(MENU_DESIGN_FILE), JSON.stringify(design, null, 2));
     return true;
   } catch (error) {
     console.error(`❌ Erro ao salvar design do menu: ${error.message}`);
@@ -2758,7 +2826,7 @@ const getMenuDesignWithDefaults = (botName, userName) => {
 
 // ===== Per-User Command Limiting System =====
 const loadCommandLimits = () => {
-  const data = loadJsonFile(CMD_LIMIT_FILE, {
+  const data = loadJsonFile(effPath(CMD_LIMIT_FILE), {
     commands: {},
     users: {}
   });
@@ -2774,8 +2842,8 @@ const loadCommandLimits = () => {
 
 const saveCommandLimits = (data) => {
   try {
-    ensureDirectoryExists(DATABASE_DIR);
-    fs.writeFileSync(CMD_LIMIT_FILE, JSON.stringify(data, null, 2));
+    ensureDirectoryExists(effPath(DATABASE_DIR));
+    fs.writeFileSync(effPath(CMD_LIMIT_FILE), JSON.stringify(data, null, 2));
     return true;
   } catch (error) {
     console.error('❌ Erro ao salvar limites de comandos:', error);
@@ -3002,12 +3070,12 @@ const formatTimeLeft = (milliseconds) => {
 };
 
 const loadGroupCustomization = () => {
-  ensureJsonFileExists(GROUP_CUSTOMIZATION_FILE, { enabled: false, groups: {} });
-  return loadJsonFile(GROUP_CUSTOMIZATION_FILE);
+  ensureJsonFileExists(effPath(GROUP_CUSTOMIZATION_FILE), { enabled: false, groups: {} });
+  return loadJsonFile(effPath(GROUP_CUSTOMIZATION_FILE));
 };
 
 const saveGroupCustomization = (data) => {
-  fs.writeFileSync(GROUP_CUSTOMIZATION_FILE, JSON.stringify(data, null, 2));
+  fs.writeFileSync(effPath(GROUP_CUSTOMIZATION_FILE), JSON.stringify(data, null, 2));
 };
 
 const isGroupCustomizationEnabled = () => {
@@ -3079,12 +3147,12 @@ const removeGroupCustomPhoto = (groupId) => {
 // ============== SISTEMA DE ÁUDIO DO MENU ==============
 
 const loadMenuAudio = () => {
-  ensureJsonFileExists(MENU_AUDIO_FILE, { enabled: false, audioPath: null });
-  return loadJsonFile(MENU_AUDIO_FILE);
+  ensureJsonFileExists(effPath(MENU_AUDIO_FILE), { enabled: false, audioPath: null });
+  return loadJsonFile(effPath(MENU_AUDIO_FILE));
 };
 
 const saveMenuAudio = (data) => {
-  fs.writeFileSync(MENU_AUDIO_FILE, JSON.stringify(data, null, 2));
+  fs.writeFileSync(effPath(MENU_AUDIO_FILE), JSON.stringify(data, null, 2));
 };
 
 const isMenuAudioEnabled = () => {
@@ -3129,12 +3197,12 @@ const removeMenuAudio = () => {
 // ============== SISTEMA DE LER MAIS DO MENU ==============
 
 const loadMenuLerMais = () => {
-  ensureJsonFileExists(MENU_LERMAIS_FILE, { enabled: true });
-  return loadJsonFile(MENU_LERMAIS_FILE);
+  ensureJsonFileExists(effPath(MENU_LERMAIS_FILE), { enabled: true });
+  return loadJsonFile(effPath(MENU_LERMAIS_FILE));
 };
 
 const saveMenuLerMais = (data) => {
-  fs.writeFileSync(MENU_LERMAIS_FILE, JSON.stringify(data, null, 2));
+  fs.writeFileSync(effPath(MENU_LERMAIS_FILE), JSON.stringify(data, null, 2));
 };
 
 const isMenuLerMaisEnabled = () => {
@@ -3257,6 +3325,10 @@ export {
   addGlobalBlacklist,
   removeGlobalBlacklist,
   getGlobalBlacklist,
+  loadSharedOwners,
+  saveSharedOwners,
+  addSharedOwner,
+  removeSharedOwner,
   loadMenuDesign,
   saveMenuDesign,
   getMenuDesignWithDefaults,
