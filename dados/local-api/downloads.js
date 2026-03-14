@@ -13,7 +13,7 @@ const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMP_DIR = join(__dirname, '../midias/local_dl_temp');
 
-const YTDLP = 'yt-dlp';
+const YTDLP = existsSync('/home/runner/.local/bin/yt-dlp') ? '/home/runner/.local/bin/yt-dlp' : 'yt-dlp';
 const TIMEOUT = 120000;
 
 if (!existsSync(TEMP_DIR)) mkdirSync(TEMP_DIR, { recursive: true });

@@ -42,12 +42,21 @@
     },
     {
       "id": "69055121780979@lid",
-      "msg": 13,
+      "msg": 21,
       "cmd": 1,
       "figu": 1,
       "pushname": "ㅤ",
       "firstSeen": "2026-03-06T03:58:49.542Z",
-      "lastActivity": "2026-03-06T15:43:20.299Z"
+      "lastActivity": "2026-03-09T01:58:05.767Z"
+    },
+    {
+      "id": "218928055853094@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "𝙺𝚗𝚘𝚠𝚡𝚕𝚢",
+      "firstSeen": "2026-03-07T22:53:04.066Z",
+      "lastActivity": "2026-03-07T22:53:04.066Z"
     }
   ],
   "antigp": true

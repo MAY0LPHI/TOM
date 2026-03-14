@@ -15,21 +15,21 @@
   "contador": [
     {
       "id": "116741841658083@lid",
-      "msg": 1,
+      "msg": 26,
       "cmd": 0,
       "figu": 0,
       "pushname": "Thiago Melo",
       "firstSeen": "2026-03-06T01:43:53.954Z",
-      "lastActivity": "2026-03-06T01:43:53.954Z"
+      "lastActivity": "2026-03-12T12:19:20.923Z"
     },
     {
       "id": "267864309297372@lid",
-      "msg": 1,
+      "msg": 7,
       "cmd": 0,
       "figu": 0,
       "pushname": "amphy",
       "firstSeen": "2026-03-06T13:15:09.303Z",
-      "lastActivity": "2026-03-06T13:15:09.303Z"
+      "lastActivity": "2026-03-07T20:02:02.436Z"
     },
     {
       "id": "270213891227699@lid",
@@ -51,21 +51,21 @@
     },
     {
       "id": "138040399900672@lid",
-      "msg": 2,
+      "msg": 4,
       "cmd": 0,
       "figu": 0,
       "pushname": "Marlos Carapeto▕⃝⃤",
       "firstSeen": "2026-03-06T16:25:47.235Z",
-      "lastActivity": "2026-03-06T16:26:31.383Z"
+      "lastActivity": "2026-03-07T20:18:53.374Z"
     },
     {
       "id": "161761386868961@lid",
-      "msg": 3,
+      "msg": 4,
       "cmd": 0,
       "figu": 0,
       "pushname": "Milena",
       "firstSeen": "2026-03-06T16:35:30.477Z",
-      "lastActivity": "2026-03-07T15:41:08.067Z"
+      "lastActivity": "2026-03-11T00:53:51.735Z"
     },
     {
       "id": "88227352420496@lid",
@@ -84,6 +84,123 @@
       "pushname": "Djhonantan Parreira",
       "firstSeen": "2026-03-07T15:41:23.718Z",
       "lastActivity": "2026-03-07T15:41:33.967Z"
+    },
+    {
+      "id": "178722346905695@lid",
+      "msg": 19,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Luis Felipe",
+      "firstSeen": "2026-03-07T18:51:51.722Z",
+      "lastActivity": "2026-03-07T20:04:39.878Z"
+    },
+    {
+      "id": "169092896018481@lid",
+      "msg": 7,
+      "cmd": 0,
+      "figu": 1,
+      "pushname": "Matheus Trevizani",
+      "firstSeen": "2026-03-07T18:55:46.075Z",
+      "lastActivity": "2026-03-12T17:13:22.901Z"
+    },
+    {
+      "id": "116814671548445@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Yuri Vettoraci",
+      "firstSeen": "2026-03-07T19:26:19.410Z",
+      "lastActivity": "2026-03-07T19:26:19.410Z"
+    },
+    {
+      "id": "13417578512600@lid",
+      "msg": 2,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Krisley",
+      "firstSeen": "2026-03-07T19:52:20.199Z",
+      "lastActivity": "2026-03-07T19:53:13.813Z"
+    },
+    {
+      "id": "126817600049236@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Mac/Kauan ",
+      "firstSeen": "2026-03-07T20:28:43.806Z",
+      "lastActivity": "2026-03-07T20:28:43.806Z"
+    },
+    {
+      "id": "147072581951498@lid",
+      "msg": 5,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Gleidson Viana",
+      "firstSeen": "2026-03-07T20:32:20.574Z",
+      "lastActivity": "2026-03-07T20:36:02.537Z"
+    },
+    {
+      "id": "192002771669160@lid",
+      "msg": 3,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "yagwthekid",
+      "firstSeen": "2026-03-07T20:35:39.587Z",
+      "lastActivity": "2026-03-11T04:10:00.039Z"
+    },
+    {
+      "id": "242940697907326@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Isaac Bissoli",
+      "firstSeen": "2026-03-07T20:52:29.283Z",
+      "lastActivity": "2026-03-07T20:52:29.283Z"
+    },
+    {
+      "id": "183060112920618@lid",
+      "msg": 3,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "0x0i7",
+      "firstSeen": "2026-03-07T20:57:20.800Z",
+      "lastActivity": "2026-03-09T23:31:10.839Z"
+    },
+    {
+      "id": "141421042487317@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Sidney Pereira",
+      "firstSeen": "2026-03-07T21:00:00.554Z",
+      "lastActivity": "2026-03-07T21:00:00.554Z"
+    },
+    {
+      "id": "219524603314285@lid",
+      "msg": 2,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Thalis",
+      "firstSeen": "2026-03-07T21:14:20.689Z",
+      "lastActivity": "2026-03-11T01:04:48.242Z"
+    },
+    {
+      "id": "125258510135494@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Kamila Pais",
+      "firstSeen": "2026-03-12T16:59:35.111Z",
+      "lastActivity": "2026-03-12T16:59:35.111Z"
+    },
+    {
+      "id": "157135723884777@lid",
+      "msg": 2,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Paulo Siqueira",
+      "firstSeen": "2026-03-12T17:27:56.420Z",
+      "lastActivity": "2026-03-12T17:29:06.497Z"
     }
   ]
 }

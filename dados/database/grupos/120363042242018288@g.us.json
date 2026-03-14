@@ -15,21 +15,30 @@
   "contador": [
     {
       "id": "69055121780979@lid",
-      "msg": 8,
-      "cmd": 45,
+      "msg": 105,
+      "cmd": 64,
       "figu": 0,
       "pushname": "ㅤ",
       "firstSeen": "2026-01-31T17:42:17.605Z",
-      "lastActivity": "2026-03-07T02:15:41.475Z"
+      "lastActivity": "2026-03-09T01:32:14.844Z"
     },
     {
       "id": "11613591609530@lid",
-      "msg": 5,
-      "cmd": 0,
+      "msg": 20,
+      "cmd": 8,
       "figu": 0,
       "pushname": "FÉRIAS",
       "firstSeen": "2026-03-06T03:22:00.267Z",
-      "lastActivity": "2026-03-06T04:00:54.118Z"
+      "lastActivity": "2026-03-07T20:50:33.179Z"
+    },
+    {
+      "id": "218928055853094@lid",
+      "msg": 63,
+      "cmd": 3,
+      "figu": 2,
+      "pushname": "𝙺𝚗𝚘𝚠𝚡𝚕𝚢",
+      "firstSeen": "2026-03-07T20:52:05.441Z",
+      "lastActivity": "2026-03-09T03:31:35.142Z"
     }
   ],
   "modobrincadeira": true,

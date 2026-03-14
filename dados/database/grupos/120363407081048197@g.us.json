@@ -1,0 +1,89 @@
+{
+  "mark": {},
+  "createdAt": "2026-03-09T03:07:34.673Z",
+  "groupName": "𝑲𝒏𝒐𝒘𝒙𝒍𝒚 𝑩𝒐𝒕 𝑮𝒓𝒖𝒑𝒐",
+  "modorpg": false,
+  "minMessage": null,
+  "moderators": [],
+  "allowedModCommands": [],
+  "mutedUsers": {},
+  "mutedUsers2": {},
+  "levelingEnabled": false,
+  "adminWhitelist": {},
+  "roles": {},
+  "roleMessages": {},
+  "contador": [
+    {
+      "id": "232547128742085@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 1,
+      "pushname": "Kassia",
+      "firstSeen": "2026-03-09T03:07:34.674Z",
+      "lastActivity": "2026-03-09T03:07:34.674Z"
+    },
+    {
+      "id": "218928055853094@lid",
+      "msg": 12,
+      "cmd": 1,
+      "figu": 1,
+      "pushname": "Knowxly",
+      "firstSeen": "2026-03-09T03:30:31.673Z",
+      "lastActivity": "2026-03-12T14:30:35.685Z"
+    },
+    {
+      "id": "69055121780979@lid",
+      "msg": 2,
+      "cmd": 0,
+      "figu": 1,
+      "pushname": "ㅤ",
+      "firstSeen": "2026-03-09T03:30:32.204Z",
+      "lastActivity": "2026-03-12T14:29:32.410Z"
+    },
+    {
+      "id": "211317138960489@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 1,
+      "pushname": "🕊️😇",
+      "firstSeen": "2026-03-09T03:31:33.271Z",
+      "lastActivity": "2026-03-09T03:31:33.271Z"
+    },
+    {
+      "id": "63884081770731@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "...𝖓𝖊𝖒𝖊... 𝖘𝖎𝖓𝖎𝖘𝖙𝖗𝖔",
+      "firstSeen": "2026-03-09T03:32:33.231Z",
+      "lastActivity": "2026-03-09T03:32:33.231Z"
+    },
+    {
+      "id": "202258734120975@lid",
+      "msg": 218,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "Knowxly",
+      "firstSeen": "2026-03-11T03:24:48.049Z",
+      "lastActivity": "2026-03-12T12:25:26.640Z"
+    },
+    {
+      "id": "112747622719719@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "L",
+      "firstSeen": "2026-03-12T09:55:48.346Z",
+      "lastActivity": "2026-03-12T09:55:48.346Z"
+    },
+    {
+      "id": "213391910113395@lid",
+      "msg": 7,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "𖤐 𝑩𝑨𝑷𝑯𝑶𝑴𝑬𝑻 𖤐",
+      "firstSeen": "2026-03-12T11:22:12.612Z",
+      "lastActivity": "2026-03-12T12:35:24.536Z"
+    }
+  ]
+}

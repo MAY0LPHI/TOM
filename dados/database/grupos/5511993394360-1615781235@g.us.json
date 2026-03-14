@@ -15,69 +15,69 @@
   "contador": [
     {
       "id": "69055121780979@lid",
-      "msg": 57,
-      "cmd": 21,
-      "figu": 5,
+      "msg": 72,
+      "cmd": 23,
+      "figu": 7,
       "pushname": "ㅤ",
       "firstSeen": "2026-03-06T02:55:27.240Z",
-      "lastActivity": "2026-03-06T22:52:13.769Z"
+      "lastActivity": "2026-03-12T14:28:05.749Z"
     },
     {
       "id": "193514096820356@lid",
-      "msg": 77,
+      "msg": 122,
       "cmd": 37,
-      "figu": 2,
+      "figu": 10,
       "pushname": "Raul",
       "firstSeen": "2026-03-06T02:55:45.277Z",
-      "lastActivity": "2026-03-07T15:53:47.032Z"
+      "lastActivity": "2026-03-12T14:35:38.496Z"
     },
     {
       "id": "238091545640995@lid",
-      "msg": 92,
+      "msg": 117,
       "cmd": 41,
-      "figu": 12,
+      "figu": 18,
       "pushname": "Murylo",
       "firstSeen": "2026-03-06T02:55:56.774Z",
-      "lastActivity": "2026-03-07T15:46:28.833Z"
+      "lastActivity": "2026-03-12T15:08:23.197Z"
     },
     {
       "id": "142082014474446@lid",
-      "msg": 127,
+      "msg": 165,
       "cmd": 53,
-      "figu": 12,
+      "figu": 15,
       "pushname": "愛 ◥꧁Ｘｌ-_SNOOP_-ｌＸ꧂◤ 愛",
       "firstSeen": "2026-03-06T12:59:48.888Z",
-      "lastActivity": "2026-03-07T15:54:46.933Z"
+      "lastActivity": "2026-03-12T14:28:15.655Z"
     },
     {
       "id": "104071386112100@lid",
-      "msg": 2,
+      "msg": 7,
       "cmd": 1,
-      "figu": 1,
+      "figu": 3,
       "pushname": "belle 🍄",
       "firstSeen": "2026-03-06T14:32:05.615Z",
-      "lastActivity": "2026-03-06T18:04:53.298Z"
+      "lastActivity": "2026-03-12T14:16:16.417Z"
     },
     {
       "id": "35270405701778@lid",
-      "msg": 1,
+      "msg": 22,
       "cmd": 3,
-      "figu": 0,
+      "figu": 1,
       "pushname": "Matheus",
       "firstSeen": "2026-03-06T14:32:47.693Z",
-      "lastActivity": "2026-03-06T14:35:22.081Z"
+      "lastActivity": "2026-03-12T14:00:22.030Z"
     },
     {
       "id": "251741153038466@lid",
-      "msg": 2,
+      "msg": 11,
       "cmd": 0,
       "figu": 1,
       "pushname": "Lucas",
       "firstSeen": "2026-03-06T17:04:45.136Z",
-      "lastActivity": "2026-03-07T00:49:16.861Z"
+      "lastActivity": "2026-03-12T14:08:14.714Z"
     }
   ],
   "modobrincadeira": true,
-  "modosimsimi": true,
+  "modosimsimi": false,
   "simsimiPersonalidade": "debochado"
 }

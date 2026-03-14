@@ -19,5 +19,16 @@
   "adminWhitelist": {},
   "roles": {},
   "roleMessages": {},
-  "groupName": "(Desativado) ADS - Avisos e Atividades"
+  "groupName": "TUTORIAL DE BOT",
+  "contador": [
+    {
+      "id": "69055121780979@lid",
+      "msg": 3,
+      "cmd": 13,
+      "figu": 0,
+      "pushname": "ㅤ",
+      "firstSeen": "2026-03-08T02:32:06.044Z",
+      "lastActivity": "2026-03-12T05:36:09.757Z"
+    }
+  ]
 }

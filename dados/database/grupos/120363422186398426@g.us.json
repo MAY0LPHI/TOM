@@ -23,12 +23,30 @@
   "contador": [
     {
       "id": "23519995936800@lid",
-      "msg": 48,
+      "msg": 83,
       "cmd": 0,
       "figu": 0,
       "pushname": "Vendedor Arleson • GF ATACADO",
       "firstSeen": "2026-03-06T13:55:32.452Z",
-      "lastActivity": "2026-03-06T23:43:18.123Z"
+      "lastActivity": "2026-03-11T02:45:07.851Z"
+    },
+    {
+      "id": "240037249708145@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "alainydiego",
+      "firstSeen": "2026-03-11T02:06:32.738Z",
+      "lastActivity": "2026-03-11T02:06:32.738Z"
+    },
+    {
+      "id": "207730723815517@lid",
+      "msg": 1,
+      "cmd": 0,
+      "figu": 0,
+      "pushname": "2️⃣2️⃣",
+      "firstSeen": "2026-03-12T12:54:18.139Z",
+      "lastActivity": "2026-03-12T12:54:18.139Z"
     }
   ]
 }
