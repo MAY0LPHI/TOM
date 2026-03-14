@@ -200,9 +200,14 @@ import {
   // Sistema de Ler Mais do Menu
   isMenuLerMaisEnabled,
   setMenuLerMais,
-  getMenuLerMaisText
+  getMenuLerMaisText,
+  botPathsContext,
+  loadSharedOwners,
+  addSharedOwner,
+  removeSharedOwner
 } from './utils/database.js';
 import { parseCustomCommandMeta, buildUsageFromParams, parseArgsFromString, escapeRegExp, validateParamValue } from './utils/helpers.js';
+import { generatePingBanner } from '../local-api/banner.js';
 import {
   PACKAGE_JSON_PATH,
   CONFIG_FILE,
@@ -236,7 +241,9 @@ import {
   MODO_LITE_FILE,
   JID_LID_CACHE_FILE,
   MASS_MENTION_LIMIT_FILE,
-  MASS_MENTION_CONFIG_FILE
+  MASS_MENTION_CONFIG_FILE,
+  SHARED_BLOCKS_FILE,
+  getEffectivePaths
 } from './utils/paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -407,6 +414,54 @@ const fileExistsAsync = async (filePath) => {
 const MASS_MENTION_THRESHOLD = 150; // Membros mínimos para aplicar proteção (quando ativa)
 const MASS_MENTION_MAX_USES = 2;    // Máximo de usos permitidos
 const MASS_MENTION_COOLDOWN = 5 * 60 * 60 * 1000; // 5 horas em milissegundos
+
+// ─── Gerenciador de chaves Gemini para SimSimi ───────────────────────────────
+// Memoriza quais chaves estão em cooldown entre mensagens e fica reativando-as
+const simsimiKeyManager = (() => {
+  const COOLDOWN_QUOTA   = 5 * 60 * 1000;  // 429 quota → 5 min cooldown
+  const COOLDOWN_ERROR   = 30 * 1000;       // outros erros → 30 s cooldown
+  const CHECK_INTERVAL   = 60 * 1000;       // verifica chaves a cada 1 min
+
+  const state = {};   // { [index]: { cooldownUntil, reason } }
+
+  const isActive = (i) => {
+    if (!state[i]) return true;
+    return Date.now() >= state[i].cooldownUntil;
+  };
+
+  const markFailed = (i, status) => {
+    const cd = status === 429 ? COOLDOWN_QUOTA : COOLDOWN_ERROR;
+    const until = Date.now() + cd;
+    state[i] = { cooldownUntil: until, reason: status || 'error' };
+    const secs = Math.round(cd / 1000);
+    console.warn(`[SimSimi] Chave #${i + 1} em cooldown por ${secs}s (status: ${status || 'erro'}).`);
+  };
+
+  const markSuccess = (i) => { delete state[i]; };
+
+  // Retorna os índices das chaves ativas em ordem rotativa
+  const getActiveIndexes = (total) => {
+    const indexes = [];
+    for (let i = 0; i < total; i++) {
+      if (isActive(i)) indexes.push(i);
+    }
+    return indexes;
+  };
+
+  // Periodicamente loga quais chaves voltaram a ficar disponíveis
+  setInterval(() => {
+    const recovered = Object.keys(state).filter(i => isActive(Number(i)));
+    if (recovered.length > 0) {
+      recovered.forEach(i => {
+        console.log(`[SimSimi] Chave #${Number(i) + 1} liberada do cooldown.`);
+        delete state[Number(i)];
+      });
+    }
+  }, CHECK_INTERVAL);
+
+  return { isActive, markFailed, markSuccess, getActiveIndexes };
+})();
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Cache em memória para rate limit (persistido em arquivo)
 let massMentionLimitCache = null;
@@ -618,18 +673,32 @@ setInterval(() => {
   saveJidLidCache();
 }, 5 * 60 * 1000);
   
-async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirationManager = null) {
+async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirationManager = null, subBotConfigPath = null) {
   // Log de início de processamento para debug paralelo
   const msgId = info?.key?.id?.slice(-6) || 'unknown';
   const from = info?.key?.remoteJid || 'unknown';
 
-  let config = loadJsonFile(CONFIG_FILE, {});
+  if (subBotConfigPath) {
+    botPathsContext.enterWith(getEffectivePaths(subBotConfigPath));
+  } else {
+    botPathsContext.enterWith(null);
+  }
+
+  const effectiveConfigFile = subBotConfigPath || CONFIG_FILE;
+  let config = loadJsonFile(effectiveConfigFile, {});
   ensureDatabaseIntegrity({ log: Boolean(config?.debug) });
+
+  const buildGroupFilePath = (groupId) => {
+    const gruposDir = subBotConfigPath
+      ? pathz.join(pathz.dirname(subBotConfigPath), 'grupos')
+      : GRUPOS_DIR;
+    return pathz.join(gruposDir, `${groupId}.json`);
+  };
   
   // Verificação e correção do prefixo reservado $ ao inicializar
   if (config.prefixo === '$') {
     config.prefixo = '/';
-    writeJsonFile(CONFIG_FILE, config);
+    writeJsonFile(effectiveConfigFile, config);
     
     // Notifica o dono sobre a mudança automática
     const ownerJid = `${config.numerodono}@s.whatsapp.net`;
@@ -1193,7 +1262,7 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     })
   );
   const globalBlocks = await optimizer.getCachedFile(
-    DATABASE_DIR + '/globalBlocks.json',
+    SHARED_BLOCKS_FILE,
     30000, // 30 segundos
     (path) => loadJsonFile(path, {
       commands: {},
@@ -1278,12 +1347,18 @@ async function NazuninhaBotExec(nazu, info, store, messagesCache, rentalExpirati
     const senderBase = sender.split('@')[0];
     const ownerBase = String(numerodono);
     const lidOwnerBase = lidowner ? lidowner.split('@')[0] : null;
+
+    const sharedOwnersList = loadSharedOwners();
+    const isSharedOwner = sharedOwnersList.some(o =>
+      sender === o || senderBase === o.split('@')[0]
+    );
     
     const isOwner = senderBase === ownerBase || 
                     sender === nmrdn || 
                     sender === ownerJid || 
                     (lidowner && sender === lidowner) || 
                     (lidOwnerBase && senderBase === lidOwnerBase) ||
+                    isSharedOwner ||
                     info.key.fromMe || 
                     isBotSender;
     
@@ -3485,25 +3560,26 @@ Código: *${roleCode}*`,
             const imageBuffer = await getFileBuffer(mediaInfo.media, 'image');
             const mediaURL = await upload(imageBuffer, true);
             if (mediaURL) {
-              const apiResponse = await axios.get(`https://nsfw-demo.sashido.io/api/image/classify?url=${encodeURIComponent(mediaURL)}`);
-              let scores = {
-                Porn: 0,
-                Hentai: 0
-              };
-              if (Array.isArray(apiResponse.data)) {
-                scores = apiResponse.data.reduce((acc, item) => {
-                  if (item && typeof item.className === 'string' && typeof item.probability === 'number') {
-                    if (item.className === 'Porn' || item.className === 'Hentai') {
-                      acc[item.className] = Math.max(acc[item.className] || 0, item.probability);
+              let scores = { Porn: 0, Hentai: 0 };
+              try {
+                const apiResponse = await axios.get(`https://nsfw-demo.sashido.io/api/image/classify?url=${encodeURIComponent(mediaURL)}`);
+                if (Array.isArray(apiResponse.data)) {
+                  scores = apiResponse.data.reduce((acc, item) => {
+                    if (item && typeof item.className === 'string' && typeof item.probability === 'number') {
+                      if (item.className === 'Porn' || item.className === 'Hentai') {
+                        acc[item.className] = Math.max(acc[item.className] || 0, item.probability);
+                      }
                     }
-                  }
-                  return acc;
-                }, {
-                  Porn: 0,
-                  Hentai: 0
-                });
-              } else {
-                console.warn("Anti-porn API response format unexpected:", apiResponse.data);
+                    return acc;
+                  }, { Porn: 0, Hentai: 0 });
+                } else {
+                  console.warn("Anti-porn API response format unexpected:", apiResponse.data);
+                }
+              } catch (nsfwExtErr) {
+                console.warn('[antiporn] API externa falhou, usando local (permissiva):', nsfwExtErr.message);
+                const { classificarNSFW } = await import('../local-api/nsfw.js');
+                const localNsfw = await classificarNSFW(imageBuffer);
+                scores = { Porn: localNsfw.classificacoes?.Porn || 0, Hentai: localNsfw.classificacoes?.Hentai || 0 };
               }
               const pornThreshold = 0.7;
               const hentaiThreshold = 0.7;
@@ -4984,6 +5060,17 @@ Entre em contato com o dono do bot:
 ✨ Use ${prefix}menuvip para ver todos os comandos VIP disponíveis!`);
         return;
       }
+    }
+
+    const MAIN_BOT_ONLY_COMMANDS = new Set([
+      'addsubbot', 'removesubbot', 'delsubbot', 'rmsubbot',
+      'listarsubbots', 'listsubbots', 'subbots',
+      'conectarsubbot', 'reconnectsubbot',
+      'gerarcodigo', 'pairingcode', 'codigosubbot'
+    ]);
+
+    if (subBotConfigPath !== null && isCmd && MAIN_BOT_ONLY_COMMANDS.has(command)) {
+      return;
     }
 
     switch (command) {
@@ -20348,6 +20435,42 @@ Use: ${prefix}divulgar
 5. Conectar manualmente:
    ${prefix}conectarsubbot <numero>
 
+👑 *Donos Globais (reconhecidos por TODOS os bots):*
+
+1. Adicionar dono global:
+   ${prefix}adddonog @usuario
+   O número terá poderes de dono em todos os bots
+
+2. Remover dono global:
+   ${prefix}remdonog @usuario
+
+3. Listar donos globais:
+   ${prefix}listdonog
+
+🚫 *Bloqueios Globais (afetam TODOS os bots):*
+
+1. Bloquear pessoa em todos os bots:
+   ${prefix}addblacklist @usuario
+
+2. Remover bloqueio global da pessoa:
+   ${prefix}delblacklist @usuario
+
+3. Desativar comando em todos os bots:
+   ${prefix}blockcmdg <comando>
+   Exemplo: ${prefix}blockcmdg sticker
+
+4. Reativar comando em todos os bots:
+   ${prefix}unblockcmdg <comando>
+
+5. Bloquear usuário globalmente:
+   ${prefix}blockuserg @usuario
+
+6. Desbloquear usuário globalmente:
+   ${prefix}unblockuserg @usuario
+
+7. Listar todos os bloqueios globais:
+   ${prefix}listblocks
+
 📱 *Para o Sub-Bot:*
 
 1. Receba o código do dono
@@ -21188,7 +21311,7 @@ Precisa de ajuda? Entre em contato:
           const cmdToBlock = q?.toLowerCase().split(' ')[0];
           const reason = q?.split(' ').slice(1).join(' ') || 'Sem motivo informado';
           if (!cmdToBlock) return reply('❌ Informe o comando a bloquear! Ex.: ' + prefix + 'blockcmd sticker');
-          const blockFile = pathz.join(DATABASE_DIR, 'globalBlocks.json');
+          const blockFile = SHARED_BLOCKS_FILE;
           globalBlocks.commands = globalBlocks.commands || {};
           globalBlocks.commands[cmdToBlock] = {
             reason,
@@ -21206,7 +21329,7 @@ Precisa de ajuda? Entre em contato:
         try {
           const cmdToUnblock = q?.toLowerCase().split(' ')[0];
           if (!cmdToUnblock) return reply('❌ Informe o comando a desbloquear! Ex.: ' + prefix + 'unblockcmd sticker');
-          const blockFile = pathz.join(DATABASE_DIR, 'globalBlocks.json');
+          const blockFile = SHARED_BLOCKS_FILE;
           if (!globalBlocks.commands || !globalBlocks.commands[cmdToUnblock]) {
             return reply(`❌ O comando *${cmdToUnblock}* não está bloqueado!`);
           }
@@ -21227,7 +21350,7 @@ Precisa de ajuda? Entre em contato:
           var menc_os3;
           menc_os3 = (menc_os2 && menc_os2.includes(' ')) ? menc_os2.split(' ')[0] : menc_os2;
           if (!menc_os3) return reply("Erro ao processar usuário mencionado");
-          const blockFile = pathz.join(DATABASE_DIR, 'globalBlocks.json');
+          const blockFile = SHARED_BLOCKS_FILE;
           globalBlocks.users = globalBlocks.users || {};
           globalBlocks.users[menc_os3] = {
             reason,
@@ -21246,7 +21369,7 @@ Precisa de ajuda? Entre em contato:
         if (!isOwner) return reply("Este comando é apenas para o meu dono");
         try {
           if (!menc_os2) return reply("Marque alguém 🙄");
-          const blockFile = pathz.join(DATABASE_DIR, 'globalBlocks.json');
+          const blockFile = SHARED_BLOCKS_FILE;
           if (!globalBlocks.users) {
             return reply(`ℹ️ Não há usuários bloqueados globalmente.`);
           }
@@ -21270,7 +21393,7 @@ Precisa de ajuda? Entre em contato:
       case 'listblocks':
         if (!isOwner) return reply("Este comando é apenas para o meu dono");
         try {
-          const blockFile = pathz.join(DATABASE_DIR, 'globalBlocks.json');
+          const blockFile = SHARED_BLOCKS_FILE;
           const blockedCommands = globalBlocks.commands ? Object.entries(globalBlocks.commands).map(([cmd, data]) => `🔧 *${cmd}* - Motivo: ${data.reason}`).join('\n') : 'Nenhum comando bloqueado.';
           const blockedUsers = globalBlocks.users ? Object.entries(globalBlocks.users).map(([user, data]) => {
             return `👤 *${getUserName(user)}* - Motivo: ${data.reason}`;
@@ -21282,6 +21405,45 @@ Precisa de ajuda? Entre em contato:
           await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
         }
         break;
+      case 'adddonog': {
+        if (!isOwner) return reply('Este comando é apenas para o meu dono');
+        try {
+          const targetId = menc_os2 || (args[0] ? `${args[0].replace(/\D/g, '')}@s.whatsapp.net` : null);
+          if (!targetId) return reply(`❌ Mencione ou informe o número do novo dono global.\n\nUso: ${prefix}adddonog @usuario`);
+          const result = addSharedOwner(targetId);
+          await reply(result.message);
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro interno. Tente novamente em alguns minutos.');
+        }
+        break;
+      }
+      case 'remdonog': {
+        if (!isOwner) return reply('Este comando é apenas para o meu dono');
+        try {
+          const targetId = menc_os2 || (args[0] ? `${args[0].replace(/\D/g, '')}@s.whatsapp.net` : null);
+          if (!targetId) return reply(`❌ Mencione ou informe o número do dono a remover.\n\nUso: ${prefix}remdonog @usuario`);
+          const result = removeSharedOwner(targetId);
+          await reply(result.message);
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro interno. Tente novamente em alguns minutos.');
+        }
+        break;
+      }
+      case 'listdonog': {
+        if (!isOwner) return reply('Este comando é apenas para o meu dono');
+        try {
+          const owners = loadSharedOwners();
+          if (!owners.length) return reply('📋 Nenhum dono global adicional cadastrado além do dono principal.');
+          const list = owners.map((o, i) => `${i + 1}. ${o}`).join('\n');
+          await reply(`👑 *Donos Globais (reconhecidos por todos os bots)*:\n\n${list}\n\n_Estes números têm permissão de dono em TODOS os bots._`);
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro interno. Tente novamente em alguns minutos.');
+        }
+        break;
+      }
       case 'seradm':
         try {
           if (!isOwner) return reply("Este comando é apenas para o meu dono");
@@ -21300,6 +21462,93 @@ Precisa de ajuda? Entre em contato:
           await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
         }
         break;
+      case 'addgeminikey': {
+        if (!isOwner) return reply('Este comando é apenas para o meu dono.');
+        try {
+          if (!q) return reply(`❌ Informe o nome e a chave.\n\nUso: ${prefix}addgeminikey Nome da chave | AIzaSy...`);
+          let nome, chave;
+          if (q.includes('|')) {
+            [nome, chave] = q.split('|').map(s => s.trim());
+          } else {
+            chave = q.trim();
+            nome = null;
+          }
+          if (!chave) return reply(`❌ Chave inválida.\n\nUso: ${prefix}addgeminikey Nome | AIzaSy...`);
+          let cfg = JSON.parse(fs.readFileSync(effectiveConfigFile, 'utf-8'));
+          if (!Array.isArray(cfg.geminiApiKeys)) cfg.geminiApiKeys = [];
+          const jaExiste = cfg.geminiApiKeys.some(e =>
+            (typeof e === 'string' ? e : e.key) === chave
+          );
+          if (jaExiste) return reply('⚠️ Essa chave já está cadastrada.');
+          const novoNum = cfg.geminiApiKeys.length + 1;
+          cfg.geminiApiKeys.push({ nome: nome || `Chave ${novoNum}`, key: chave });
+          writeJsonFile(effectiveConfigFile, cfg);
+          await reply(`✅ *${nome || `Chave ${novoNum}`}* adicionada!\nTotal de chaves no arquivo: ${cfg.geminiApiKeys.length}`);
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro ao salvar a chave.');
+        }
+        break;
+      }
+      case 'delgeminikey': {
+        if (!isOwner) return reply('Este comando é apenas para o meu dono.');
+        try {
+          const idx = parseInt(q?.trim()) - 1;
+          if (isNaN(idx) || idx < 0) return reply(`❌ Informe o número da chave.\n\nUso: ${prefix}delgeminikey 1\n\nUse ${prefix}listgeminikeys para ver a lista.`);
+          let cfg = JSON.parse(fs.readFileSync(effectiveConfigFile, 'utf-8'));
+          if (!Array.isArray(cfg.geminiApiKeys) || idx >= cfg.geminiApiKeys.length) {
+            return reply(`❌ Chave #${idx + 1} não encontrada. Use ${prefix}listgeminikeys para ver a lista.`);
+          }
+          const removida = cfg.geminiApiKeys[idx];
+          const nomeRemovida = typeof removida === 'object' ? removida.nome : `Chave #${idx + 1}`;
+          cfg.geminiApiKeys.splice(idx, 1);
+          writeJsonFile(effectiveConfigFile, cfg);
+          await reply(`✅ *${nomeRemovida}* removida. Total restante: ${cfg.geminiApiKeys.length}`);
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro ao remover a chave.');
+        }
+        break;
+      }
+      case 'listgeminikeys': {
+        if (!isOwner) return reply('Este comando é apenas para o meu dono.');
+        try {
+          let cfg = JSON.parse(fs.readFileSync(effectiveConfigFile, 'utf-8'));
+          const entriesArquivo = (Array.isArray(cfg.geminiApiKeys) ? cfg.geminiApiKeys : [])
+            .map((e, i) => typeof e === 'object' ? e : { nome: `Chave ${i + 1}`, key: e });
+          const entriesEnv = [
+            { nome: 'GEMINI_API_KEY',   key: process.env.GEMINI_API_KEY },
+            { nome: 'GEMINI_API_KEY_2', key: process.env.GEMINI_API_KEY_2 },
+            { nome: 'GEMINI_API_KEY_3', key: process.env.GEMINI_API_KEY_3 },
+            { nome: 'GEMINI_API_KEY_4', key: process.env.GEMINI_API_KEY_4 },
+            { nome: 'GEMINI_API_KEY_5', key: process.env.GEMINI_API_KEY_5 },
+          ].filter(e => e.key && !entriesArquivo.some(x => x.key === e.key));
+
+          const maskKey = (k) => k && k.length > 10 ? `${k.slice(0, 6)}...${k.slice(-4)}` : '****';
+
+          let msg = `🔑 *Chaves Gemini Configuradas*\n\n`;
+          if (entriesArquivo.length > 0) {
+            msg += `📁 *Salvas no arquivo (vêm com o download):*\n`;
+            entriesArquivo.forEach((e, i) => { msg += `  ${i + 1}. *${e.nome}* — ${maskKey(e.key)}\n`; });
+          } else {
+            msg += `📁 *Arquivo:* nenhuma chave salva\n`;
+          }
+          msg += `\n🌐 *Apenas nos Secrets Replit:*\n`;
+          if (entriesEnv.length > 0) {
+            entriesEnv.forEach((e, i) => { msg += `  ${i + 1}. *${e.nome}* — ${maskKey(e.key)}\n`; });
+          } else {
+            msg += `  nenhuma exclusiva\n`;
+          }
+          const total = entriesArquivo.length + entriesEnv.length;
+          msg += `\n📊 *Total ativo:* ${total} chave(s)`;
+          msg += `\n\n💡 Uso:\n• *${prefix}addgeminikey Nome | AIzaSy...*\n• *${prefix}delgeminikey <número>*`;
+          await reply(msg);
+        } catch (e) {
+          console.error(e);
+          await reply('❌ Ocorreu um erro ao listar as chaves.');
+        }
+        break;
+      }
       case 'prefixo':
       case 'prefix':
         try {
@@ -21314,9 +21563,9 @@ Precisa de ajuda? Entre em contato:
             await reply(`⚠️ O símbolo "$" é reservado e não pode ser usado como prefixo.\n✅ Prefixo alterado automaticamente para "/" globalmente!`);
           }
           
-          let config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+          let config = JSON.parse(fs.readFileSync(effectiveConfigFile));
           config.prefixo = newPrefix;
-          writeJsonFile(CONFIG_FILE, config);
+          writeJsonFile(effectiveConfigFile, config);
           
           // Se não foi convertido, envia mensagem normal
           if (newPrefix !== '/') {
@@ -21332,9 +21581,9 @@ Precisa de ajuda? Entre em contato:
         try {
           if (!isOwner) return reply("Este comando é exclusivo para o meu dono!");
           if (!q) return reply(`Por favor, digite o novo número do dono.\nExemplo: ${prefix}${command} +553391967445`);
-          let config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+          let config = JSON.parse(fs.readFileSync(effectiveConfigFile));
           config.numerodono = q;
-          writeJsonFile(CONFIG_FILE, config);
+          writeJsonFile(effectiveConfigFile, config);
           await reply(`Número do dono alterado com sucesso para "${q}"!`);
         } catch (e) {
           console.error(e);
@@ -21346,9 +21595,9 @@ Precisa de ajuda? Entre em contato:
         try {
           if (!isOwner) return reply("Este comando é exclusivo para o meu dono!");
           if (!q) return reply(`Por favor, digite o novo nome do dono.\nExemplo: ${prefix}${command} Hiudy`);
-          let config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+          let config = JSON.parse(fs.readFileSync(effectiveConfigFile));
           config.nomedono = q;
-          writeJsonFile(CONFIG_FILE, config);
+          writeJsonFile(effectiveConfigFile, config);
           await reply(`Nome do dono alterado com sucesso para "${q}"!`);
         } catch (e) {
           console.error(e);
@@ -21361,9 +21610,9 @@ Precisa de ajuda? Entre em contato:
         try {
           if (!isOwner) return reply("Este comando é exclusivo para o meu dono!");
           if (!q) return reply(`Por favor, digite o novo nome do bot.\nExemplo: ${prefix}${command} Nazuna`);
-          let config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+          let config = JSON.parse(fs.readFileSync(effectiveConfigFile));
           config.nomebot = q;
-          writeJsonFile(CONFIG_FILE, config);
+          writeJsonFile(effectiveConfigFile, config);
           await reply(`Nome do bot alterado com sucesso para "${q}"!`);
         } catch (e) {
           console.error(e);
@@ -23793,10 +24042,10 @@ ${prefix}togglecmdvip premium_ia off`);
             statusCor = '🟥';
           }
           
-          const bannerUrl = `https://nazu-banner.vercel.app/api/banner?theme=miku&num=${speedConverted.toFixed(3)}`;
+          const bannerBuffer = await generatePingBanner(speedConverted);
           
           await nazu.sendMessage(from, {
-            image: { url: bannerUrl },
+            image: bannerBuffer,
             caption: `╭⊱ ⚡ *STATUS DA CONEXÃO* ⚡ ⊱╮
 │
 │ 📡 *Informações de Latência*
@@ -24001,40 +24250,34 @@ ${prefix}togglecmdvip premium_ia off`);
       case 'ttp':
         try {
           if (!q) return reply('Cadê o texto?');
-          var cor;
-          cor = ["f702ff", "ff0202", "00ff2e", "efff00", "00ecff", "3100ff", "ffb400", "ff00b0", "00ff95", "efff00"];
-          var fonte;
-          fonte = ["Days%20One", "Domine", "Exo", "Fredoka%20One", "Gentium%20Basic", "Gloria%20Hallelujah", "Great%20Vibes", "Orbitron", "PT%20Serif", "Pacifico"];
-          var cores;
-          cores = cor[Math.floor(Math.random() * cor.length)];
-          var fontes;
-          fontes = fonte[Math.floor(Math.random() * fonte.length)];
-          function breakText(text, maxCharsPerLine = 20) {
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            for (const word of words) {
-              if ((currentLine + word).length <= maxCharsPerLine) {
-                currentLine += (currentLine ? ' ' : '') + word;
-              } else {
-                if (currentLine) lines.push(currentLine);
-                currentLine = word;
-              }
-            }
-            if (currentLine) lines.push(currentLine);
-            return lines.join('%0A');
+          const { gerarTTP } = await import('../local-api/sticker-text.js');
+          const ttpLocal = await gerarTTP(q);
+          if (ttpLocal.ok) {
+            await sendSticker(nazu, from, {
+              sticker: ttpLocal.buffer,
+              author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
+              packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
+              type: 'image'
+            }, { quoted: info });
+          } else {
+            console.warn('[ttp] API local falhou, usando externa:', ttpLocal.msg);
+            const cor = ["f702ff","ff0202","00ff2e","efff00","00ecff","3100ff","ffb400","ff00b0","00ff95","efff00"];
+            const fonte = ["Days%20One","Domine","Exo","Fredoka%20One","Gentium%20Basic","Gloria%20Hallelujah","Great%20Vibes","Orbitron","PT%20Serif","Pacifico"];
+            const cores = cor[Math.floor(Math.random() * cor.length)];
+            const fontes = fonte[Math.floor(Math.random() * fonte.length)];
+            const breakText = (text, max = 20) => {
+              const words = text.split(' '); const lines = []; let cur = '';
+              for (const w of words) { if ((cur + w).length <= max) { cur += (cur ? ' ' : '') + w; } else { if (cur) lines.push(cur); cur = w; } }
+              if (cur) lines.push(cur); return lines.join('%0A');
+            };
+            const processedText = q.length > 20 ? breakText(q) : q;
+            await sendSticker(nazu, from, {
+              sticker: { url: `https://huratera.sirv.com/PicsArt_08-01-10.00.42.png?profile=Example-Text&text.0.text=${encodeURIComponent(processedText)}&text.0.outline.color=000000&text.0.outline.blur=0&text.0.outline.opacity=55&text.0.color=${cores}&text.0.font.family=${fontes}&text.0.font.weight=bold&text.0.background.color=ff0000` },
+              author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
+              packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
+              type: 'image'
+            }, { quoted: info });
           }
-          let processedText = q.length > 20 ? breakText(q, 20) : q;
-          await sendSticker(nazu, from, {
-            sticker: {
-              url: `https://huratera.sirv.com/PicsArt_08-01-10.00.42.png?profile=Example-Text&text.0.text=${encodeURIComponent(processedText)}&text.0.outline.color=000000&text.0.outline.blur=0&text.0.outline.opacity=55&text.0.color=${cores}&text.0.font.family=${fontes}&text.0.font.weight=bold&text.0.background.color=ff0000`
-            },
-            author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
-            packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
-            type: 'image'
-          }, {
-            quoted: info
-          });
         } catch (e) {
           console.error(e);
           await reply("❌ Ocorreu um erro interno. Tente novamente em alguns minutos.");
@@ -24043,61 +24286,51 @@ ${prefix}togglecmdvip premium_ia off`);
       case 'attp':
         try {
           if (!q) return reply('Cadê o texto?');
-          const fs = await import('fs');
-          const path = await import('path');
-          const axios = (await import('axios')).default;
-          const { exec } = await import('child_process');
-          const { promisify } = await import('util');
-          const execAsync = promisify(exec);
-          function breakText(text, maxCharsPerLine = 20) {
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            for (const word of words) {
-              if ((currentLine + word).length <= maxCharsPerLine) {
-                currentLine += (currentLine ? ' ' : '') + word;
-              } else {
-                if (currentLine) lines.push(currentLine);
-                currentLine = word;
-              }
-            }
-            if (currentLine) lines.push(currentLine);
-            return lines.join('%0A');
-          }
-          let processedText = q.length > 20 ? breakText(q, 20) : q;
-          const cores = ["f702ff", "ff0202", "00ff2e", "efff00", "00ecff", "3100ff", "ffb400", "ff00b0", "00ff95", "9d00ff", "ff6b00", "00fff7", "ff00d4", "a8ff00", "ff0062", "00b3ff", "d4ff00", "ff009d"];
-          const fontes = ["Days%20One", "Domine", "Exo", "Fredoka%20One", "Gentium%20Basic", "Gloria%20Hallelujah", "Great%20Vibes", "Orbitron", "PT%20Serif", "Pacifico"];
-          const fonteEscolhida = fontes[Math.floor(Math.random() * fontes.length)];
-          const tempDir = path.join(__dirname, '../midias/temp_attp_' + Date.now());
-          if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-          }
           await reply('⏳ Gerando sticker animado... aguarde!');
-          const numFrames = 18;
-          const downloadPromises = [];
-          for (let i = 0; i < numFrames; i++) {
-            const cor = cores[i % cores.length];
-            const imageUrl = `https://huratera.sirv.com/PicsArt_08-01-10.00.42.png?profile=Example-Text&text.0.text=${encodeURIComponent(processedText)}&text.0.outline.color=000000&text.0.outline.blur=0&text.0.outline.opacity=55&text.0.color=${cor}&text.0.font.family=${fonteEscolhida}&text.0.font.weight=bold&text.0.background.color=ff0000`;
-            const imagePath = path.join(tempDir, `frame_${String(i).padStart(3, '0')}.png`);
-            downloadPromises.push(
-              axios({ url: imageUrl, method: 'GET', responseType: 'arraybuffer' }).then(response => {
-                fs.writeFileSync(imagePath, response.data);
-              })
-            );
+          const { gerarATTP } = await import('../local-api/sticker-text.js');
+          const attpLocal = await gerarATTP(q);
+          if (attpLocal.ok) {
+            await sendSticker(nazu, from, {
+              sticker: attpLocal.buffer,
+              author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
+              packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
+              type: 'image'
+            }, { quoted: info });
+          } else {
+            console.warn('[attp] API local falhou, usando externa:', attpLocal.msg);
+            const fsAttp = await import('fs');
+            const pathAttp = await import('path');
+            const axiosAttp = (await import('axios')).default;
+            const { exec: execAttp } = await import('child_process');
+            const execAsyncAttp = (await import('util')).promisify(execAttp);
+            const breakText = (text, max = 20) => {
+              const words = text.split(' '); const lines = []; let cur = '';
+              for (const w of words) { if ((cur + w).length <= max) { cur += (cur ? ' ' : '') + w; } else { if (cur) lines.push(cur); cur = w; } }
+              if (cur) lines.push(cur); return lines.join('%0A');
+            };
+            const processedText = q.length > 20 ? breakText(q) : q;
+            const cores = ["f702ff","ff0202","00ff2e","efff00","00ecff","3100ff","ffb400","ff00b0","00ff95","9d00ff","ff6b00","00fff7","ff00d4","a8ff00","ff0062","00b3ff","d4ff00","ff009d"];
+            const fontes = ["Days%20One","Domine","Exo","Fredoka%20One","Gentium%20Basic","Gloria%20Hallelujah","Great%20Vibes","Orbitron","PT%20Serif","Pacifico"];
+            const fonteEscolhida = fontes[Math.floor(Math.random() * fontes.length)];
+            const tempDir = pathAttp.join(__dirname, '../midias/temp_attp_' + Date.now());
+            if (!fsAttp.existsSync(tempDir)) fsAttp.mkdirSync(tempDir, { recursive: true });
+            const numFrames = 18;
+            await Promise.all(Array.from({ length: numFrames }, (_, i) => {
+              const cor = cores[i % cores.length];
+              const imageUrl = `https://huratera.sirv.com/PicsArt_08-01-10.00.42.png?profile=Example-Text&text.0.text=${encodeURIComponent(processedText)}&text.0.outline.color=000000&text.0.outline.blur=0&text.0.outline.opacity=55&text.0.color=${cor}&text.0.font.family=${fonteEscolhida}&text.0.font.weight=bold&text.0.background.color=ff0000`;
+              const imagePath = pathAttp.join(tempDir, `frame_${String(i).padStart(3, '0')}.png`);
+              return axiosAttp({ url: imageUrl, method: 'GET', responseType: 'arraybuffer' }).then(r => fsAttp.writeFileSync(imagePath, r.data));
+            }));
+            const outputWebp = pathAttp.join(tempDir, 'output.webp');
+            await execAsyncAttp(`ffmpeg -y -framerate 10 -i "${pathAttp.join(tempDir, 'frame_%03d.png')}" -vf "colorkey=0xFF0000:0.15:0.05,format=rgba,scale=512:512" -vcodec libwebp -lossless 0 -compression_level 6 -q:v 50 -loop 0 -preset picture -an -vsync 0 "${outputWebp}"`);
+            await sendSticker(nazu, from, {
+              sticker: fsAttp.readFileSync(outputWebp),
+              author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
+              packname: '👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐',
+              type: 'image'
+            }, { quoted: info });
+            try { fsAttp.rmSync(tempDir, { recursive: true, force: true }); } catch {}
           }
-          await Promise.all(downloadPromises);
-          const outputWebp = path.join(tempDir, 'output.webp');
-          const webpCmd = `ffmpeg -y -framerate 10 -i "${path.join(tempDir, 'frame_%03d.png')}" -vf "colorkey=0xFF0000:0.15:0.05,format=rgba,scale=512:512" -vcodec libwebp -lossless 0 -compression_level 6 -q:v 50 -loop 0 -preset picture -an -vsync 0 "${outputWebp}"`;
-          await execAsync(webpCmd);
-          await sendSticker(nazu, from, {
-            sticker: fs.readFileSync(outputWebp),
-            author: `[ ${pushname} ]\n[ ${nomebot} ]\n[ ${nomedono} ]\n[ TOM Bot ]`,
-            packname: `👾 Usuario(a)⌨️\n🖥️ Bot💾\n💀 Dono🔐\n⚡ Site🌐`,
-            type: 'image'
-          }, {
-            quoted: info
-          });
-          try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch {}
         } catch (e) {
           console.error(e);
           await reply("❌ Ocorreu um erro ao criar o sticker animado. Tente novamente em alguns minutos.");
@@ -26435,22 +26668,22 @@ Exemplos:
             animado:     '🎉 *Animado* — entusiasmado, empolgado, cheio de emojis',
           };
           const groupFilePath = buildGroupFilePath(from);
-          if (q && simsimiPersonalidades[q.trim().toLowerCase()]) {
-            const personalidade = q.trim().toLowerCase();
+          const personalidadeArg = q ? q.trim().toLowerCase() : null;
+          if (personalidadeArg && simsimiPersonalidades[personalidadeArg]) {
+            // Argumento válido → ativa com essa personalidade
             groupData.modosimsimi = true;
-            groupData.simsimiPersonalidade = personalidade;
+            groupData.simsimiPersonalidade = personalidadeArg;
             writeJsonFile(groupFilePath, groupData);
-            await reply(`🤖 *SimSimi ativado!*\n\nPersonalidade: ${simsimiPersonalidades[personalidade]}\n\nUse *.simsimi* sem argumento para desativar.`);
-          } else if (q && !simsimiPersonalidades[q.trim().toLowerCase()]) {
-            const lista = Object.entries(simsimiPersonalidades).map(([k, v]) => `• *${prefix}simsimi ${k}* — ${v}`).join('\n');
-            await reply(`❌ Personalidade não encontrada.\n\n*Personalidades disponíveis:*\n${lista}\n\n_Use sem argumento para ativar/desativar com a personalidade atual._`);
+            await reply(`🤖 *SimSimi ativado!*\n\nPersonalidade: ${simsimiPersonalidades[personalidadeArg]}\n\nUse *${prefix}simsimi* sem argumento para desativar.`);
           } else {
+            // Sem argumento OU argumento não reconhecido → toggle normal (personalidade padrão: divertido)
             groupData.modosimsimi = !groupData.modosimsimi;
             if (!groupData.simsimiPersonalidade) groupData.simsimiPersonalidade = 'divertido';
             writeJsonFile(groupFilePath, groupData);
             if (groupData.modosimsimi) {
               const p = groupData.simsimiPersonalidade;
-              await reply(`🤖 *SimSimi ativado!*\n\nPersonalidade: ${simsimiPersonalidades[p] || simsimiPersonalidades.divertido}\n\nUse *.simsimi [personalidade]* para trocar.\nUse *.simsimi* novamente para desativar.`);
+              const lista = Object.entries(simsimiPersonalidades).map(([k, v]) => `• *${prefix}simsimi ${k}* — ${v}`).join('\n');
+              await reply(`🤖 *SimSimi ativado!*\n\nPersonalidade atual: ${simsimiPersonalidades[p] || simsimiPersonalidades.divertido}\n\n*Personalidades disponíveis:*\n${lista}\n\nUse *${prefix}simsimi* novamente para desativar.`);
             } else {
               await reply('⏸️ *SimSimi desativado!*\n\nAs mensagens do grupo não serão mais respondidas pelo SimSimi.');
             }
@@ -31033,13 +31266,24 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
         };
         if (!isCmd && isGroup && isSimsimi && body && body.trim() && !info.key.fromMe) {
           try {
-            const geminiKeys = [
-              process.env.GEMINI_API_KEY,
-              process.env.GEMINI_API_KEY_2,
-              process.env.GEMINI_API_KEY_3,
-              process.env.GEMINI_API_KEY_4,
-              process.env.GEMINI_API_KEY_5,
-            ].filter(Boolean);
+            // Normaliza entradas do config (suporta string e { nome, key })
+            const configEntries = (Array.isArray(config.geminiApiKeys) ? config.geminiApiKeys : [])
+              .map(e => typeof e === 'object' && e.key ? { nome: e.nome || 'Sem nome', key: e.key } : { nome: null, key: e })
+              .filter(e => e.key);
+            const envEntries = [
+              { nome: 'GEMINI_API_KEY',   key: process.env.GEMINI_API_KEY },
+              { nome: 'GEMINI_API_KEY_2', key: process.env.GEMINI_API_KEY_2 },
+              { nome: 'GEMINI_API_KEY_3', key: process.env.GEMINI_API_KEY_3 },
+              { nome: 'GEMINI_API_KEY_4', key: process.env.GEMINI_API_KEY_4 },
+              { nome: 'GEMINI_API_KEY_5', key: process.env.GEMINI_API_KEY_5 },
+            ].filter(e => e.key);
+            // Combina sem duplicatas (por valor da chave)
+            const allEntries = [...configEntries];
+            for (const e of envEntries) {
+              if (!allEntries.some(x => x.key === e.key)) allEntries.push(e);
+            }
+            const geminiKeys = allEntries.map(e => e.key);
+            const geminiLabels = allEntries.map(e => e.nome || e.key?.slice(0, 8) + '...');
             if (geminiKeys.length === 0) {
               console.warn('[SimSimi] Nenhuma GEMINI_API_KEY configurada.');
             } else {
@@ -31054,8 +31298,16 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
               const personalidade = groupData.simsimiPersonalidade || 'divertido';
               const systemPrompt = simsimiPrompts[personalidade] || simsimiPrompts.divertido;
               let simText = null;
-              for (let i = 0; i < geminiKeys.length; i++) {
-                const keyLabel = i === 0 ? 'GEMINI_API_KEY' : `GEMINI_API_KEY_${i + 1}`;
+
+              // Obtém apenas os índices das chaves que não estão em cooldown
+              const activeIdxs = simsimiKeyManager.getActiveIndexes(geminiKeys.length);
+
+              if (activeIdxs.length === 0) {
+                console.warn('[SimSimi] Todas as chaves estão em cooldown. Aguardando recuperação...');
+              }
+
+              for (const i of activeIdxs) {
+                const keyLabel = geminiLabels[i] || `Chave #${i + 1}`;
                 try {
                   const simResp = await axios.post(
                     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKeys[i]}`,
@@ -31069,12 +31321,15 @@ ${prefix}wl.add @usuario | antilink,antistatus`);
                   const candidate = simResp.data?.candidates?.[0]?.content?.parts?.[0]?.text;
                   if (candidate && candidate.trim()) {
                     simText = candidate.trim();
-                    if (i > 0) console.log(`[SimSimi] Respondeu usando ${keyLabel} (fallback).`);
+                    simsimiKeyManager.markSuccess(i);
+                    if (i > 0) console.log(`[SimSimi] Respondeu usando "${keyLabel}".`);
                     break;
                   }
                 } catch (keyErr) {
                   const status = keyErr.response?.status;
-                  console.warn(`[SimSimi] ${keyLabel} falhou (${status || keyErr.message})${i + 1 < geminiKeys.length ? ', tentando próxima...' : '.'}`);
+                  simsimiKeyManager.markFailed(i, status);
+                  const hasMore = activeIdxs.indexOf(i) < activeIdxs.length - 1;
+                  console.warn(`[SimSimi] "${keyLabel}" falhou (${status || keyErr.message})${hasMore ? ', pulando para a próxima...' : '.'}`);
                 }
               }
               if (simText) {

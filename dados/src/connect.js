@@ -15,7 +15,7 @@ import axios from 'axios';
 
 import PerformanceOptimizer from './utils/performanceOptimizer.js';
 import RentalExpirationManager from './utils/rentalExpirationManager.js';
-import { loadMsgBotOn } from './utils/database.js';
+import { loadMsgBotOn, loadSharedOwners, saveSharedOwners } from './utils/database.js';
 import { buildUserId } from './utils/helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1203,6 +1203,30 @@ async function createBotSocket(authDir) {
                 attachMessagesListener();
                 startCacheCleanup(); // Inicia o sistema de limpeza de cache
                 
+                // Armazena o JID do bot principal para uso pelos sub-bots
+                if (NazunaSock.user?.id) {
+                    const mainBotJid = NazunaSock.user.id.split(':')[0] + '@s.whatsapp.net';
+                    process.env.MAIN_BOT_JID = mainBotJid;
+                }
+
+                // Registra dono do bot principal na lista compartilhada de donos globais
+                try {
+                    const cfg = JSON.parse(readFileSync(configPath, 'utf8'));
+                    const donoIds = [cfg.numerodono, cfg.lidowner].filter(Boolean);
+                    const current = loadSharedOwners();
+                    let updated = false;
+                    for (const id of donoIds) {
+                        const base = id.split('@')[0];
+                        if (!current.some(o => o === id || o.split('@')[0] === base)) {
+                            current.push(id);
+                            updated = true;
+                        }
+                    }
+                    if (updated) saveSharedOwners(current);
+                } catch (e) {
+                    console.warn('⚠️ Não foi possível registrar dono principal nos donos globais:', e.message);
+                }
+
                 // Inicializa sub-bots automaticamente
                 try {
                     const subBotManagerModule = await import('./utils/subBotManager.js');
