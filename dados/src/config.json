@@ -4,26 +4,5 @@
   "nomebot": "TOM",
   "prefixo": ",",
   "lidowner": "11613591609530@lid",
-  "geminiApiKeys": [
-    {
-      "nome": "Chave 1",
-      "key": "AIzaSyB1jjxPs5MsgGXGec5GUkhHEeSAlq0brfc"
-    },
-    {
-      "nome": "Chave 2",
-      "key": "AIzaSyDqNDLvK0tDgQ0bV-lFy2TWROhqmILSGHM"
-    },
-    {
-      "nome": "Chave 3",
-      "key": "AIzaSyBYCvLD8pxSMduGHlqRen8PDbhS9_mMLZ4"
-    },
-    {
-      "nome": "Chave 4",
-      "key": "AIzaSyAmOLUVXT9E2wn6IxCGqF5lhZ9Do2NN2Uk"
-    },
-    {
-      "nome": "Chave 5",
-      "key": "AIzaSyDms2kkm5KPAn4BatPblcZU7nw8hDvnmfU"
-    }
-  ]
+  "geminiApiKeys": []
 }
